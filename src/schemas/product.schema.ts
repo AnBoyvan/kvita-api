@@ -20,10 +20,10 @@ export class Product {
   price: number;
 
   @Prop({ default: 0 })
-  discount?: number;
+  promo?: number;
 
   @Prop()
-  discountPrice?: number;
+  promoPrice?: number;
 
   @Prop({ default: '' })
   description?: string;

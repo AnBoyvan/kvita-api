@@ -13,22 +13,28 @@ export enum Role {
 }
 
 export class CartItem {
-  @Prop()
+  @Prop({ required: true })
   productId: string;
 
-  @Prop()
+  @Prop({ required: true })
   productName: string;
 
-  @Prop()
+  @Prop({ required: true })
   productImage: string;
 
-  @Prop({ min: 0 })
+  @Prop({ required: true, min: 0 })
   quantity: number;
 
-  @Prop({ min: 0 })
+  @Prop({ required: true, min: 0 })
   price: number;
 
-  @Prop({ min: 0 })
+  @Prop()
+  discount?: number;
+
+  @Prop()
+  discountSum?: number;
+
+  @Prop({ required: true, min: 0 })
   sum: number;
 }
 

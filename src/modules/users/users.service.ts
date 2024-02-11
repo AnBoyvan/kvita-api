@@ -19,7 +19,6 @@ import {
   USER_NOT_FOUND_ERROR,
 } from 'src/constants/user.constants';
 import { EmailService } from '../email/email.service';
-import { JwtService } from '@nestjs/jwt';
 import { genSalt, hash } from 'bcryptjs';
 import { UpdateByAdminDto } from './dto/update-by-admin.dto';
 
@@ -29,7 +28,6 @@ export class UsersService {
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
     private readonly emailService: EmailService,
-    private readonly jwtService: JwtService,
   ) {}
 
   async create(dto: CreateUserDto): Promise<UserDocument | null> {

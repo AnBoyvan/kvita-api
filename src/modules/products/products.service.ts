@@ -96,12 +96,15 @@ export class ProductsService {
       category,
       isActive,
       isNewProduct,
+      promo,
+      priceMin,
+      priceMax,
       createdStart,
       createdEnd,
       updatedStart,
       updatedEnd,
       page = 1,
-      limit = 16,
+      limit = 20,
       sortField = 'createdAt',
       sortOrder = 'desc',
     } = dto;
@@ -111,7 +114,7 @@ export class ProductsService {
     const pipeline: PipelineStage[] = [];
 
     if (search) {
-      filter.$or = [{ name: { $regex: search, $options: 'i' } }];
+      filter.search = { name: { $regex: search, $options: 'i' } };
     }
 
     if (category) {
@@ -125,6 +128,17 @@ export class ProductsService {
 
     if (isNewProduct) {
       filter.isNewProduct = isNewProduct === 'true' ? true : false;
+    }
+
+    if (promo && Number(promo) > 0) {
+      filter.promo = { $gte: Number(promo) };
+    }
+
+    if (priceMin !== undefined && priceMax !== undefined) {
+      filter.$or = [
+        { price: { $gte: Number(priceMin), $lte: Number(priceMax) } },
+        { promoPrice: { $gte: Number(priceMin), $lte: Number(priceMax) } },
+      ];
     }
 
     if (createdStart && createdEnd) {
@@ -179,7 +193,7 @@ export class ProductsService {
   }
 
   async forMain(): Promise<{ [key: string]: ProductDocument[] }> {
-    const limit = 4;
+    const limit = 5;
     const skip = 0;
     const categories = ['classic', 'cheesecake', 'dessert', 'set', 'other'];
 
@@ -207,7 +221,7 @@ export class ProductsService {
     return await this.productModel.find({ favorite: { $in: [_id] } });
   }
 
-  async findById(id: string): Promise<ProductDocument | null> {
+  async findById(id: string): Promise<ProductDocument> {
     const product = await this.productModel.findById(id);
     if (!product) {
       throw new NotFoundException(PRODUCT_NOT_FOUND_ERROR);

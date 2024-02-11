@@ -19,11 +19,11 @@ export class UpdateProductDto {
 
   @IsOptional()
   @IsNumber()
-  discount?: number;
+  promo?: number;
 
   @IsOptional()
   @IsNumber()
-  discountPrice?: number;
+  promoPrice?: number;
 
   @IsOptional()
   @IsString()

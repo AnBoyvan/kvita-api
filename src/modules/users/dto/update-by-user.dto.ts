@@ -1,4 +1,5 @@
-import { IsArray, IsOptional, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsArray, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { CartItemDto } from 'src/modules/orders/dto/cart-item.dto';
 
 export class UpdateByUserDto {
@@ -16,5 +17,7 @@ export class UpdateByUserDto {
 
   @IsOptional()
   @IsArray()
-  cart?: CartItemDto[];
+  @ValidateNested({ each: true })
+  @Type(() => CartItemDto)
+  items: CartItemDto[];
 }

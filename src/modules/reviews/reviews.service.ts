@@ -63,7 +63,7 @@ export class ReviewsService {
     return await this.reviewModel.find(filter).sort({ createdAt: -1 });
   }
 
-  async findById(id: string): Promise<ReviewDocument | null> {
+  async findById(id: string): Promise<ReviewDocument> {
     const review = await this.reviewModel.findById(id);
     if (!review) {
       throw new NotFoundException(REVIEW_NOT_FOUND_ERROR);

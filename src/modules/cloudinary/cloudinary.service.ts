@@ -58,7 +58,9 @@ export class CloudinaryService {
     }
   }
 
-  async addGalleryImg(path: string): Promise<object> {
+  async addGalleryImg(
+    path: string,
+  ): Promise<{ imageURL: string; largeImageURL: string }> {
     const fileName = uuid();
     const imageURL = await cloudinary.uploader.upload(path, {
       folder: `gallery`,
@@ -100,12 +102,10 @@ export class CloudinaryService {
     };
   }
 
-  async removeGalleryImg(fileName: string, category: string): Promise<void> {
+  async removeGalleryImg(fileName: string): Promise<void> {
     try {
-      await cloudinary.uploader.destroy(`products/${category}/${fileName}`);
-      await cloudinary.uploader.destroy(
-        `products/${category}/${fileName}_large`,
-      );
+      await cloudinary.uploader.destroy(`gallery/${fileName}`);
+      await cloudinary.uploader.destroy(`gallery/${fileName}_large`);
     } catch (error) {
       throw error;
     }

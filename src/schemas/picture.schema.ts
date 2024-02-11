@@ -6,19 +6,19 @@ export type PictureDocument = HydratedDocument<Picture>;
 @Schema({ versionKey: false, timestamps: true })
 export class Picture {
   @Prop({ required: true })
-  productId: string;
+  imageURL: string;
 
   @Prop({ required: true })
-  ownerId: string;
+  largeImageURL: string;
 
-  @Prop({ required: true })
-  ownerName: string;
+  @Prop({ default: '' })
+  title?: string;
 
-  @Prop({ required: true })
-  comment: string;
+  @Prop({ default: '' })
+  description?: string;
 
   @Prop()
-  date?: string;
+  tags?: string[];
 }
 
 export const PictureSchema = SchemaFactory.createForClass(Picture);

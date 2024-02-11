@@ -1,33 +1,33 @@
 import { IsOptional, IsString } from 'class-validator';
 
-export class FindProductsDto {
+export class FindOrdersDto {
   @IsOptional()
   @IsString()
-  search?: string;
+  product?: string;
 
   @IsOptional()
   @IsString()
-  category?: string;
+  status?: string;
 
   @IsOptional()
   @IsString()
-  isActive?: string;
+  totalMin?: string;
 
   @IsOptional()
   @IsString()
-  isNewProduct?: string;
+  totalMax?: string;
 
   @IsOptional()
   @IsString()
-  promo?: string;
+  customer: string;
 
   @IsOptional()
   @IsString()
-  priceMin?: string;
+  delivery?: string;
 
   @IsOptional()
   @IsString()
-  priceMax?: string;
+  paid?: string;
 
   @IsOptional()
   @IsString()
@@ -36,14 +36,6 @@ export class FindProductsDto {
   @IsOptional()
   @IsString()
   createdEnd?: string;
-
-  @IsOptional()
-  @IsString()
-  updatedStart?: string;
-
-  @IsOptional()
-  @IsString()
-  updatedEnd?: string;
 
   @IsOptional()
   @IsString()
