@@ -12,6 +12,7 @@ import { ProductsModule } from './modules/products/products.module';
 import { CloudinaryModule } from './modules/cloudinary/cloudinary.module';
 import { PicturesModule } from './modules/pictures/pictures.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
+import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { ReviewsModule } from './modules/reviews/reviews.module';
     CloudinaryModule,
     PicturesModule,
     ReviewsModule,
+    AdminModule,
   ],
 })
 export class AppModule {}
