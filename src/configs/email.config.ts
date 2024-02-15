@@ -1,8 +1,7 @@
 import { ConfigService } from '@nestjs/config';
 import { MailerOptions } from '@nestjs-modules/mailer';
 
-export const getEmailConfig = (): MailerOptions => {
-  const configService = new ConfigService();
+export const getEmailConfig = (configService: ConfigService): MailerOptions => {
   return {
     transport: {
       host: 'smtp.ukr.net',

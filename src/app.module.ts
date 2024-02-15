@@ -13,6 +13,10 @@ import { CloudinaryModule } from './modules/cloudinary/cloudinary.module';
 import { PicturesModule } from './modules/pictures/pictures.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { TelegramModule } from './modules/telegram/telegram.module';
+import { getTelegramConfig } from './configs/telegram.config';
+import { getCloudinaryConfig } from './configs/cloudinary.config';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -22,13 +26,12 @@ import { AdminModule } from './modules/admin/admin.module';
     }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => {
-        const mongoConfig = await getMongoConfig(configService);
-        return mongoConfig;
-      },
       inject: [ConfigService],
+      useFactory: getMongoConfig,
     }),
     MailerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
       useFactory: getEmailConfig,
     }),
     AuthModule,
@@ -36,10 +39,20 @@ import { AdminModule } from './modules/admin/admin.module';
     OrdersModule,
     EmailModule,
     ProductsModule,
-    CloudinaryModule,
+    CloudinaryModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: getCloudinaryConfig,
+    }),
     PicturesModule,
     ReviewsModule,
     AdminModule,
+    TelegramModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: getTelegramConfig,
+    }),
+    ScheduleModule.forRoot(),
   ],
 })
 export class AppModule {}

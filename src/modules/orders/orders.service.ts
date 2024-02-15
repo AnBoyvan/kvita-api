@@ -13,12 +13,14 @@ import {
   ORDER_REMOVE_SUCCES,
 } from 'src/constants/order.constants';
 import { UpdateOrderDto } from './dto/update-order.dto';
+import { TelegramService } from '../telegram/telegram.service';
 
 @Injectable()
 export class OrdersService {
   constructor(
     @InjectModel(Order.name)
     private readonly orderModel: Model<OrderDocument>,
+    private readonly telegramService: TelegramService,
   ) {}
 
   async create(dto: CreateOrderDto): Promise<OrderDocument> {
@@ -29,7 +31,11 @@ export class OrdersService {
       `${format(utcToZonedTime(new Date(), 'Europe/Kiev'), 'DDD')}` +
       `${uuid().substring(0, 4)}`;
 
-    return await this.orderModel.create({ ...dto, status, publicId });
+    const newOrder = await this.orderModel.create({ ...dto, status, publicId });
+
+    await this.telegramService.sendNewOrder(newOrder);
+
+    return newOrder;
   }
 
   async findOrders(dto: FindOrdersDto): Promise<OrderDocument[]> {
