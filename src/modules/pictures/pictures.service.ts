@@ -6,17 +6,15 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+
+import { CONST } from 'src/constants';
+import { CloudinaryService } from 'src/modules/cloudinary/cloudinary.service';
 import { Picture, PictureDocument } from 'src/schemas/picture.schema';
-import { CloudinaryService } from '../cloudinary/cloudinary.service';
-import { CreatePictureDto } from './dto/create-picture.dto';
-import { IMAGE_MISSING_ERROR } from 'src/constants/product.constants';
 import { removeTmpFiles } from 'src/utils/removeTmpFiles';
+
+import { CreatePictureDto } from './dto/create-picture.dto';
 import { FindPicturesDto } from './dto/find-pictures.dto';
 import { IFindPicturesFilter } from './pictures.interfaces';
-import {
-  PICTURE_NOT_FOUND_ERROR,
-  PICTURE_REMOVE_SUCCES,
-} from 'src/constants/picture.constants';
 
 @Injectable()
 export class PicturesService {
@@ -31,7 +29,7 @@ export class PicturesService {
     dto: CreatePictureDto,
   ): Promise<PictureDocument> {
     if (!image) {
-      throw new BadRequestException(IMAGE_MISSING_ERROR);
+      throw new BadRequestException(CONST.Picture.IMAGE_MISSING_ERROR);
     }
 
     const { imageURL, largeImageURL } =
@@ -69,7 +67,7 @@ export class PicturesService {
     const picture = await this.pictureModel.findById(id);
 
     if (!picture) {
-      throw new NotFoundException(PICTURE_NOT_FOUND_ERROR);
+      throw new NotFoundException(CONST.Picture.NOT_FOUND_ERROR);
     }
 
     return picture;
@@ -81,7 +79,7 @@ export class PicturesService {
     });
 
     if (!updatedPicture) {
-      throw new NotFoundException(PICTURE_NOT_FOUND_ERROR);
+      throw new NotFoundException(CONST.Picture.NOT_FOUND_ERROR);
     }
 
     return updatedPicture;
@@ -91,7 +89,7 @@ export class PicturesService {
     const picture = await this.pictureModel.findById(id);
 
     if (!picture) {
-      throw new NotFoundException(PICTURE_NOT_FOUND_ERROR);
+      throw new NotFoundException(CONST.Picture.NOT_FOUND_ERROR);
     }
 
     const fileName = picture.imageURL.split('/').pop()?.split('.')[0];
@@ -106,7 +104,7 @@ export class PicturesService {
 
     return {
       _id: id,
-      message: PICTURE_REMOVE_SUCCES,
+      message: CONST.Picture.REMOVE_SUCCES,
     };
   }
 }

@@ -13,14 +13,16 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { PicturesService } from './pictures.service';
+import { FileInterceptor } from '@nestjs/platform-express';
+
 import { JwtAuthGuard } from 'src/guards/jwt.guard';
 import { ManagerAccessGuard } from 'src/guards/manager-access.guard';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { SuperuserAccessGuard } from 'src/guards/superuser-access.guard';
+import { IdValidationPipe } from 'src/pipes/id-validation.pipe';
+
 import { CreatePictureDto } from './dto/create-picture.dto';
 import { FindPicturesDto } from './dto/find-pictures.dto';
-import { IdValidationPipe } from 'src/pipes/id-validation.pipe';
-import { SuperuserAccessGuard } from 'src/guards/superuser-access.guard';
+import { PicturesService } from './pictures.service';
 
 @Controller('pictures')
 export class PicturesController {

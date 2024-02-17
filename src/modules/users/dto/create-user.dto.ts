@@ -1,20 +1,21 @@
-import { IsString, Matches, MinLength } from 'class-validator';
-import { emailRegexp, phoneRegexp } from 'src/constants/user.constants';
+import { IsString, Matches } from 'class-validator';
+
+import { CONST } from 'src/constants';
 
 export class CreateUserDto {
   @IsString()
   name: string;
 
+  @Matches(CONST.Regexp.EMAIL, { message: CONST.User.DTO.email })
   @IsString()
-  @Matches(emailRegexp, { message: 'Невірно вказано пошту' })
   email: string;
 
+  @Matches(CONST.Regexp.PHONE, { message: CONST.User.DTO.phone })
   @IsString()
-  @Matches(phoneRegexp, { message: 'Невірно вказано телефон' })
   phone: string;
 
+  @Matches(CONST.Regexp.PASSWORD, { message: CONST.User.DTO.password })
   @IsString()
-  @MinLength(6, { message: 'Пароль має містити не менше 6 символів' })
   password: string;
 
   @IsString()

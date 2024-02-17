@@ -1,26 +1,23 @@
 import {
   ForbiddenException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { Model, PipelineStage, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
+import { genSalt, hash } from 'bcryptjs';
+import { Model, PipelineStage, Types } from 'mongoose';
+import { v4 as uuid } from 'uuid';
+
+import { CONST } from 'src/constants';
 import { Role, User, UserDocument } from 'src/schemas/user.schema';
+
 import { CreateUserDto } from './dto/create-user.dto';
 import { FindUsersDto } from './dto/find-users.dto';
-import { IFindUsersFilter } from './user.interfaces';
-import { UpdateByUserDto } from './dto/update-by-user.dto';
-import { v4 as uuid } from 'uuid';
-import {
-  ACCESS_ERROR,
-  PASSWORD_CHANGE_REQUEST_MESSAGE,
-  PASSWORD_CHANGE_SUCCESS,
-  REMOVE_USER_SUCCESS,
-  USER_NOT_FOUND_ERROR,
-} from 'src/constants/user.constants';
-import { EmailService } from '../email/email.service';
-import { genSalt, hash } from 'bcryptjs';
 import { UpdateByAdminDto } from './dto/update-by-admin.dto';
+import { UpdateByUserDto } from './dto/update-by-user.dto';
+import { IFindUsersFilter } from './user.interfaces';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class UsersService {
@@ -30,22 +27,30 @@ export class UsersService {
     private readonly emailService: EmailService,
   ) {}
 
-  async create(dto: CreateUserDto): Promise<UserDocument | null> {
-    const newUser = await this.userModel.create({
-      ...dto,
-      role: Role.Customer,
-    });
+  async create(dto: CreateUserDto): Promise<UserDocument> {
+    try {
+      const newUser = await this.userModel.create({
+        ...dto,
+        role: Role.Customer,
+      });
 
-    const user = await this.userModel
-      .findById(newUser._id)
-      .select('-password -verificationToken -passwordToken');
+      const user = await this.userModel
+        .findById(newUser._id)
+        .select('-password -verificationToken -passwordToken');
 
-    return user;
+      if (!user) {
+        throw new InternalServerErrorException();
+      }
+
+      return user;
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
   }
 
   async findAll(
     dto: FindUsersDto,
-  ): Promise<{ result: UserDocument[]; count: number } | null> {
+  ): Promise<{ result: UserDocument[]; count: number }> {
     const {
       role,
       phone,
@@ -153,25 +158,25 @@ export class UsersService {
     return { result, count };
   }
 
-  async findById(id: string): Promise<UserDocument | null> {
+  async findById(id: string): Promise<UserDocument> {
     const user = await this.userModel
       .findById(id)
       .select('-password -verificationToken -passwordToken -accessToken');
 
     if (!user) {
-      throw new NotFoundException(USER_NOT_FOUND_ERROR);
+      throw new NotFoundException(CONST.User.NOT_FOUND_ERROR);
     }
 
     return user;
   }
 
-  async findByEmail(email: string): Promise<UserDocument | null> {
+  async findByEmail(email: string): Promise<UserDocument> {
     const user = await this.userModel
       .findOne({ email })
       .select('-password -verificationToken -passwordToken -accessToken');
 
     if (!user) {
-      throw new NotFoundException(USER_NOT_FOUND_ERROR);
+      throw new NotFoundException(CONST.User.NOT_FOUND_ERROR);
     }
 
     return user;
@@ -183,7 +188,7 @@ export class UsersService {
       .select('-password -verificationToken -passwordToken -accessToken');
 
     if (!user) {
-      throw new NotFoundException(USER_NOT_FOUND_ERROR);
+      throw new NotFoundException(CONST.User.NOT_FOUND_ERROR);
     }
 
     return user;
@@ -202,10 +207,8 @@ export class UsersService {
   }
 
   async changePasswordRequest(email: string): Promise<{ message: string }> {
-    const user = await this.userModel.findOne({ email });
-    if (!user) {
-      throw new NotFoundException(USER_NOT_FOUND_ERROR);
-    }
+    const user = await this.findByEmail(email);
+
     const passwordToken = uuid();
     await this.userModel.findByIdAndUpdate(user._id, {
       $set: { passwordToken },
@@ -213,7 +216,7 @@ export class UsersService {
     await this.emailService.sendPasswordChangeEmail(email, passwordToken);
 
     return {
-      message: PASSWORD_CHANGE_REQUEST_MESSAGE,
+      message: CONST.User.PASSWORD_CHANGE_REQUEST_MESSAGE,
     };
   }
 
@@ -223,7 +226,7 @@ export class UsersService {
   ): Promise<{ message: string }> {
     const user = await this.userModel.findOne({ passwordToken });
     if (!user) {
-      throw new NotFoundException(USER_NOT_FOUND_ERROR);
+      throw new NotFoundException(CONST.User.NOT_FOUND_ERROR);
     }
     const salt = await genSalt(10);
     const passwordHash = await hash(password, salt);
@@ -232,7 +235,7 @@ export class UsersService {
       passwordToken: null,
     });
     return {
-      message: PASSWORD_CHANGE_SUCCESS,
+      message: CONST.User.PASSWORD_CHANGE_SUCCESS,
     };
   }
 
@@ -246,13 +249,13 @@ export class UsersService {
       adminRole !== Role.Admin &&
       adminRole !== Role.Superuser
     ) {
-      throw new ForbiddenException(ACCESS_ERROR);
+      throw new ForbiddenException(CONST.User.ACCESS_ERROR);
     }
     if (dto.role === Role.Admin && adminRole !== Role.Superuser) {
-      throw new ForbiddenException(ACCESS_ERROR);
+      throw new ForbiddenException(CONST.User.ACCESS_ERROR);
     }
     if (dto.role === Role.Superuser) {
-      throw new ForbiddenException(ACCESS_ERROR);
+      throw new ForbiddenException(CONST.User.ACCESS_ERROR);
     }
 
     const updatedUser = await this.userModel
@@ -261,7 +264,7 @@ export class UsersService {
       })
       .select('-password -verificationToken -passwordToken -accessToken');
     if (!updatedUser) {
-      throw new NotFoundException(USER_NOT_FOUND_ERROR);
+      throw new NotFoundException(CONST.User.NOT_FOUND_ERROR);
     }
     return updatedUser;
   }
@@ -269,14 +272,14 @@ export class UsersService {
   async remove(id: Types.ObjectId) {
     const checkUser = await this.userModel.findById(id);
     if (!checkUser) {
-      throw new NotFoundException(USER_NOT_FOUND_ERROR);
+      throw new NotFoundException(CONST.User.NOT_FOUND_ERROR);
     }
     if (checkUser.role === Role.Superuser) {
-      throw new ForbiddenException(ACCESS_ERROR);
+      throw new ForbiddenException(CONST.User.ACCESS_ERROR);
     }
     const user = await this.userModel
       .findByIdAndDelete(id)
       .select('-password -verificationToken -passwordToken -accessToken');
-    return { user, message: REMOVE_USER_SUCCESS };
+    return { user, message: CONST.User.REMOVE_SUCCESS };
   }
 }

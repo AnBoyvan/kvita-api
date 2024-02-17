@@ -7,21 +7,22 @@ import {
   Patch,
   Post,
   Query,
-  Req,
   UseGuards,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { OrdersService } from './orders.service';
-import { CreateOrderDto } from './dto/create-order.dto';
-import { ManagerAccessGuard } from 'src/guards/manager-access.guard';
+
+import { User } from 'src/decorators/user.decorator';
 import { JwtAuthGuard } from 'src/guards/jwt.guard';
-import { FindOrdersDto } from './dto/find-orders.dto';
-import { Request } from 'express';
-import { UserDocument } from 'src/schemas/user.schema';
-import { UpdateOrderDto } from './dto/update-order.dto';
-import { IdValidationPipe } from 'src/pipes/id-validation.pipe';
+import { ManagerAccessGuard } from 'src/guards/manager-access.guard';
 import { SuperuserAccessGuard } from 'src/guards/superuser-access.guard';
+import { IdValidationPipe } from 'src/pipes/id-validation.pipe';
+import { UserDocument } from 'src/schemas/user.schema';
+
+import { CreateOrderDto } from './dto/create-order.dto';
+import { FindOrdersDto } from './dto/find-orders.dto';
+import { UpdateOrderDto } from './dto/update-order.dto';
+import { OrdersService } from './orders.service';
 
 @Controller('orders')
 export class OrdersController {
@@ -50,9 +51,8 @@ export class OrdersController {
 
   @UseGuards(JwtAuthGuard)
   @Get('own')
-  async getOwn(@Req() req: Request) {
-    const user = req.user as UserDocument;
-    return await this.ordersService.findCustomerOrders(user._id);
+  async getOwn(@User() { _id }: UserDocument) {
+    return await this.ordersService.findCustomerOrders(_id);
   }
 
   @UseGuards(JwtAuthGuard, ManagerAccessGuard)

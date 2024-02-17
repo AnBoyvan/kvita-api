@@ -1,11 +1,13 @@
 import { Module } from '@nestjs/common';
-import { ProductsService } from './products.service';
-import { ProductsController } from './products.controller';
-import { Product, ProductSchema } from 'src/schemas/product.schema';
 import { MongooseModule } from '@nestjs/mongoose';
-import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 import { MulterModule } from '@nestjs/platform-express';
+
 import { getMulterConfigForImages } from 'src/configs/multer.config';
+import { CloudinaryModule } from 'src/modules/cloudinary/cloudinary.module';
+import { Product, ProductSchema } from 'src/schemas/product.schema';
+
+import { ProductsController } from './products.controller';
+import { ProductsService } from './products.service';
 
 @Module({
   imports: [

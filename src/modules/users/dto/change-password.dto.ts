@@ -1,7 +1,9 @@
-import { IsString, MinLength } from 'class-validator';
+import { IsString, Matches } from 'class-validator';
+
+import { CONST } from 'src/constants';
 
 export class ChangePasswordDto {
   @IsString()
-  @MinLength(6, { message: 'Пароль має містити не менше 6 символів' })
+  @Matches(CONST.Regexp.PASSWORD, { message: CONST.User.DTO.password })
   password: string;
 }

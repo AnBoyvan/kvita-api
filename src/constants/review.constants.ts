@@ -1,2 +1,8 @@
-export const REVIEW_NOT_FOUND_ERROR = 'Відгука з таким ID не знайдено';
-export const REVIEW_REMOVE_SUCCES = 'Відгук видалено';
+export const reviewConstants = {
+  NOT_FOUND_ERROR: 'Відгук з таким ID не знайдено',
+  REMOVE_SUCCESS: 'Відгук видалено',
+  DTO: {
+    productId: 'ID товару не вказано',
+    comment: 'Додайте коментар',
+  },
+};

@@ -4,18 +4,18 @@ import {
   Get,
   HttpCode,
   Post,
-  Req,
-  UnauthorizedException,
   UseGuards,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { Request } from 'express';
-import { AuthService } from './auth.service';
+
+import { User } from 'src/decorators/user.decorator';
 import { JwtAuthGuard } from 'src/guards/jwt.guard';
-import { RegisterDto } from './dto/register.dto';
-import { LoginDto } from './dto/login.dto';
 import { UserDocument } from 'src/schemas/user.schema';
+
+import { AuthService } from './auth.service';
+import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -46,25 +46,13 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @HttpCode(204)
   @Post('logout')
-  async logout(@Req() req: Request) {
-    const user = req.user as UserDocument;
-
-    if (!user) {
-      throw new UnauthorizedException();
-    }
-
-    return await this.authService.logout(user._id);
+  async logout(@User() { _id }: UserDocument) {
+    return await this.authService.logout(_id);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('current')
-  async getCurrent(@Req() req: Request) {
-    const user = req.user as UserDocument;
-
-    if (!user) {
-      throw new UnauthorizedException();
-    }
-
-    return await this.authService.current(user._id);
+  async getCurrent(@User() { _id }: UserDocument) {
+    return await this.authService.current(_id);
   }
 }

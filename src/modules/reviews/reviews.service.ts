@@ -4,21 +4,18 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { format } from 'date-fns';
 import { Model, Types } from 'mongoose';
+
+import { CONST } from 'src/constants';
+import { ProductsService } from 'src/modules/products/products.service';
 import { Review, ReviewDocument } from 'src/schemas/review.schema';
 import { UserDocument } from 'src/schemas/user.schema';
+
 import { CreateReviewDto } from './dto/create-review.dto';
-import { format } from 'date-fns';
-import { ProductsService } from '../products/products.service';
-import { FindReviewsDto } from './dto/find-reviews.dto copy';
-import { IFindReviewsFilter } from './reviews.interfaces';
-import {
-  REVIEW_NOT_FOUND_ERROR,
-  REVIEW_REMOVE_SUCCES,
-} from 'src/constants/review.constants';
-import { PRODUCT_NOT_FOUND_ERROR } from 'src/constants/product.constants';
+import { FindReviewsDto } from './dto/find-reviews.dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
-import { ACCESS_ERROR } from 'src/constants/user.constants';
+import { IFindReviewsFilter } from './reviews.interfaces';
 
 @Injectable()
 export class ReviewsService {
@@ -31,13 +28,11 @@ export class ReviewsService {
   async create(
     user: UserDocument,
     dto: CreateReviewDto,
-  ): Promise<ReviewDocument | null> {
+  ): Promise<ReviewDocument> {
     const { _id: ownerId, name: ownerName } = user;
 
-    const product = await this.productsService.findById(dto.productId);
-    if (!product) {
-      throw new NotFoundException(PRODUCT_NOT_FOUND_ERROR);
-    }
+    await this.productsService.findById(dto.productId);
+
     const date = format(new Date(), 'dd-MM-yyyy');
 
     return await this.reviewModel.create({
@@ -66,7 +61,7 @@ export class ReviewsService {
   async findById(id: string): Promise<ReviewDocument> {
     const review = await this.reviewModel.findById(id);
     if (!review) {
-      throw new NotFoundException(REVIEW_NOT_FOUND_ERROR);
+      throw new NotFoundException(CONST.Review.NOT_FOUND_ERROR);
     }
     return review;
   }
@@ -76,16 +71,12 @@ export class ReviewsService {
     id: string,
     dto: UpdateReviewDto,
   ): Promise<ReviewDocument> {
-    const review = await this.reviewModel.findById(id);
-
-    if (!review) {
-      throw new NotFoundException(REVIEW_NOT_FOUND_ERROR);
-    }
+    const review = await this.findById(id);
 
     const { ownerId } = review;
 
     if (ownerId !== userId.toString()) {
-      throw new ForbiddenException(ACCESS_ERROR);
+      throw new ForbiddenException(CONST.User.ACCESS_ERROR);
     }
 
     const updatedReview = await this.reviewModel.findByIdAndUpdate(id, dto, {
@@ -93,7 +84,7 @@ export class ReviewsService {
     });
 
     if (!updatedReview) {
-      throw new NotFoundException(REVIEW_NOT_FOUND_ERROR);
+      throw new NotFoundException(CONST.Review.NOT_FOUND_ERROR);
     }
 
     return updatedReview;
@@ -104,26 +95,22 @@ export class ReviewsService {
     role: string,
     id: string,
   ): Promise<{ _id: string; message: string }> {
-    const review = await this.reviewModel.findById(id);
-
-    if (!review) {
-      throw new NotFoundException(REVIEW_NOT_FOUND_ERROR);
-    }
+    const review = await this.findById(id);
 
     const { ownerId } = review;
     if (ownerId !== userId.toString() && role !== 'superuser') {
-      throw new ForbiddenException(ACCESS_ERROR);
+      throw new ForbiddenException(CONST.User.ACCESS_ERROR);
     }
 
     const deletedReview = await this.reviewModel.findByIdAndDelete(id);
 
     if (!deletedReview) {
-      throw new NotFoundException(REVIEW_NOT_FOUND_ERROR);
+      throw new NotFoundException(CONST.Review.NOT_FOUND_ERROR);
     }
 
     return {
       _id: id,
-      message: REVIEW_REMOVE_SUCCES,
+      message: CONST.Review.REMOVE_SUCCESS,
     };
   }
 }

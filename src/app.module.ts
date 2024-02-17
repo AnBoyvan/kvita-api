@@ -1,22 +1,23 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
-import { getMongoConfig } from './configs/mongo.config';
-import { UsersModule } from './modules/users/users.module';
-import { AuthModule } from './modules/auth/auth.module';
-import { OrdersModule } from './modules/orders/orders.module';
-import { EmailModule } from './modules/email/email.module';
-import { getEmailConfig } from './configs/email.config';
-import { MailerModule } from '@nestjs-modules/mailer';
-import { ProductsModule } from './modules/products/products.module';
-import { CloudinaryModule } from './modules/cloudinary/cloudinary.module';
-import { PicturesModule } from './modules/pictures/pictures.module';
-import { ReviewsModule } from './modules/reviews/reviews.module';
-import { AdminModule } from './modules/admin/admin.module';
-import { TelegramModule } from './modules/telegram/telegram.module';
-import { getTelegramConfig } from './configs/telegram.config';
-import { getCloudinaryConfig } from './configs/cloudinary.config';
 import { ScheduleModule } from '@nestjs/schedule';
+import { MailerModule } from '@nestjs-modules/mailer';
+
+import { getCloudinaryConfig } from './configs/cloudinary.config';
+import { getEmailConfig } from './configs/email.config';
+import { getMongoConfig } from './configs/mongo.config';
+import { getTelegramConfig } from './configs/telegram.config';
+import { AdminModule } from './modules/admin/admin.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { CloudinaryModule } from './modules/cloudinary/cloudinary.module';
+import { EmailModule } from './modules/email/email.module';
+import { OrdersModule } from './modules/orders/orders.module';
+import { PicturesModule } from './modules/pictures/pictures.module';
+import { ProductsModule } from './modules/products/products.module';
+import { ReviewsModule } from './modules/reviews/reviews.module';
+import { TelegramModule } from './modules/telegram/telegram.module';
+import { UsersModule } from './modules/users/users.module';
 
 @Module({
   imports: [
@@ -37,7 +38,11 @@ import { ScheduleModule } from '@nestjs/schedule';
     AuthModule,
     UsersModule,
     OrdersModule,
-    EmailModule,
+    EmailModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: getEmailConfig,
+    }),
     ProductsModule,
     CloudinaryModule.forRootAsync({
       imports: [ConfigModule],

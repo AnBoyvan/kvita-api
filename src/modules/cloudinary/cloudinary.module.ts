@@ -1,8 +1,10 @@
 import { DynamicModule, Global, Module, Provider } from '@nestjs/common';
-import { CloudinaryService } from './cloudinary.service';
-import { ICloudinaryModuleAsyncOptions } from './cloudinary.interfaces';
-import { CLOUDINARY } from 'src/constants/cloudinary.constants';
 import { ConfigOptions } from 'cloudinary';
+
+import { CONST } from 'src/constants';
+
+import { ICloudinaryModuleAsyncOptions } from './cloudinary.interfaces';
+import { CloudinaryService } from './cloudinary.service';
 
 @Global()
 @Module({})
@@ -21,7 +23,7 @@ export class CloudinaryModule {
     options: ICloudinaryModuleAsyncOptions,
   ): Provider {
     return {
-      provide: CLOUDINARY,
+      provide: CONST.Cloudinary.MODULE_OPTIONS,
       useFactory: async (...args: any[]): Promise<ConfigOptions> => {
         const config = await options.useFactory(...args);
         return config;

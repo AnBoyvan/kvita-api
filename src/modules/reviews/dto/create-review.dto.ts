@@ -1,9 +1,11 @@
 import { IsString } from 'class-validator';
 
+import { CONST } from 'src/constants';
+
 export class CreateReviewDto {
-  @IsString()
+  @IsString({ message: CONST.Review.DTO.productId })
   productId: string;
 
-  @IsString()
+  @IsString({ message: CONST.Review.DTO.comment })
   comment: string;
 }

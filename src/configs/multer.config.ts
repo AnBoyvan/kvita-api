@@ -1,8 +1,9 @@
-import { HttpException, HttpStatus } from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common';
 import { MulterModuleOptions } from '@nestjs/platform-express';
 import { path } from 'app-root-path';
 import { diskStorage } from 'multer';
-import { IMAGE_MIMETIPE_ERROR } from 'src/constants/multer.constants';
+
+import { CONST } from 'src/constants';
 
 export const getMulterConfigForImages = (): MulterModuleOptions => ({
   storage: diskStorage({
@@ -15,10 +16,7 @@ export const getMulterConfigForImages = (): MulterModuleOptions => ({
     if (file.mimetype.includes('image')) {
       cb(null, true);
     } else {
-      cb(
-        new HttpException(IMAGE_MIMETIPE_ERROR, HttpStatus.BAD_REQUEST),
-        false,
-      );
+      cb(new BadRequestException(CONST.Multer.IMAGE_MIMETIPE_ERROR), false);
     }
   },
 });

@@ -4,7 +4,8 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { CanActivate } from '@nestjs/common/interfaces';
-import { ACCESS_ERROR } from 'src/constants/user.constants';
+
+import { CONST } from 'src/constants';
 import { Role } from 'src/schemas/user.schema';
 
 @Injectable()
@@ -17,9 +18,9 @@ export class AdminAccessGuard implements CanActivate {
       if (role === Role.Admin || role === Role.Superuser) {
         return true;
       }
-      throw new ForbiddenException(ACCESS_ERROR);
+      throw new ForbiddenException(CONST.User.ACCESS_ERROR);
     } catch (error) {
-      throw new ForbiddenException(ACCESS_ERROR);
+      throw new ForbiddenException(CONST.User.ACCESS_ERROR);
     }
   }
 }

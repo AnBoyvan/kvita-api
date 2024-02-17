@@ -1,6 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { v2 as cloudinary } from 'cloudinary';
 import { v4 as uuid } from 'uuid';
+
+import { CONST } from 'src/constants';
 
 @Injectable()
 export class CloudinaryService {
@@ -10,24 +12,29 @@ export class CloudinaryService {
     category: string,
   ): Promise<string> {
     const fileName = uuid();
-    const data = await cloudinary.uploader.upload(path, {
-      folder: `products/${category}/${id}`,
-      public_id: fileName,
-      overwrite: true,
-      format: 'webp',
-      transformation: [
-        {
-          width: 1000,
-          height: 1000,
-          crop: 'fit',
-        },
-      ],
-    });
 
-    if (!data) {
-      throw new Error(data);
+    try {
+      const data = await cloudinary.uploader.upload(path, {
+        folder: `products/${category}/${id}`,
+        public_id: fileName,
+        overwrite: true,
+        format: 'webp',
+        transformation: [
+          {
+            width: 1000,
+            height: 1000,
+            crop: 'fit',
+          },
+        ],
+      });
+
+      if (!data) {
+        throw new InternalServerErrorException(CONST.Cloudinary.UPLOAD_ERROR);
+      }
+      return data.secure_url;
+    } catch (error) {
+      throw error;
     }
-    return data.secure_url;
   }
 
   async removeProductImg(
@@ -62,44 +69,49 @@ export class CloudinaryService {
     path: string,
   ): Promise<{ imageURL: string; largeImageURL: string }> {
     const fileName = uuid();
-    const imageURL = await cloudinary.uploader.upload(path, {
-      folder: `gallery`,
-      public_id: fileName,
-      overwrite: true,
-      format: 'webp',
-      transformation: [
-        {
-          width: 400,
-          height: 400,
-          crop: 'fit',
-        },
-      ],
-    });
-    if (!imageURL) {
-      throw new Error(imageURL);
-    }
 
-    const largeImageURL = await cloudinary.uploader.upload(path, {
-      folder: `gallery`,
-      public_id: `${fileName}_large`,
-      overwrite: true,
-      format: 'webp',
-      transformation: [
-        {
-          width: 1000,
-          height: 1000,
-          crop: 'fit',
-        },
-      ],
-    });
-    if (!largeImageURL) {
-      throw new Error(largeImageURL);
-    }
+    try {
+      const imageURL = await cloudinary.uploader.upload(path, {
+        folder: `gallery`,
+        public_id: fileName,
+        overwrite: true,
+        format: 'webp',
+        transformation: [
+          {
+            width: 400,
+            height: 400,
+            crop: 'fit',
+          },
+        ],
+      });
+      if (!imageURL) {
+        throw new InternalServerErrorException(CONST.Cloudinary.UPLOAD_ERROR);
+      }
 
-    return {
-      imageURL: imageURL.secure_url,
-      largeImageURL: largeImageURL.secure_url,
-    };
+      const largeImageURL = await cloudinary.uploader.upload(path, {
+        folder: `gallery`,
+        public_id: `${fileName}_large`,
+        overwrite: true,
+        format: 'webp',
+        transformation: [
+          {
+            width: 1000,
+            height: 1000,
+            crop: 'fit',
+          },
+        ],
+      });
+      if (!largeImageURL) {
+        throw new InternalServerErrorException(CONST.Cloudinary.UPLOAD_ERROR);
+      }
+
+      return {
+        imageURL: imageURL.secure_url,
+        largeImageURL: largeImageURL.secure_url,
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 
   async removeGalleryImg(fileName: string): Promise<void> {

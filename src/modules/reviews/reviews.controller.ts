@@ -7,19 +7,20 @@ import {
   Patch,
   Post,
   Query,
-  Req,
   UseGuards,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { ReviewsService } from './reviews.service';
+
+import { User } from 'src/decorators/user.decorator';
 import { JwtAuthGuard } from 'src/guards/jwt.guard';
-import { Request } from 'express';
-import { UserDocument } from 'src/schemas/user.schema';
-import { CreateReviewDto } from './dto/create-review.dto';
-import { FindReviewsDto } from './dto/find-reviews.dto copy';
 import { IdValidationPipe } from 'src/pipes/id-validation.pipe';
+import { UserDocument } from 'src/schemas/user.schema';
+
+import { CreateReviewDto } from './dto/create-review.dto';
+import { FindReviewsDto } from './dto/find-reviews.dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
+import { ReviewsService } from './reviews.service';
 
 @Controller('reviews')
 export class ReviewsController {
@@ -32,8 +33,7 @@ export class ReviewsController {
   )
   @UseGuards(JwtAuthGuard)
   @Post()
-  async create(@Req() req: Request, @Body() dto: CreateReviewDto) {
-    const user = req.user as UserDocument;
+  async create(@Body() dto: CreateReviewDto, @User() user: UserDocument) {
     return await this.reviewsService.create(user, dto);
   }
 
@@ -60,18 +60,19 @@ export class ReviewsController {
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
   async update(
-    @Req() req: Request,
     @Param('id', IdValidationPipe) id: string,
     @Body() dto: UpdateReviewDto,
+    @User() { _id }: UserDocument,
   ) {
-    const user = req.user as UserDocument;
-    return await this.reviewsService.update(user._id, id, dto);
+    return await this.reviewsService.update(_id, id, dto);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  async remove(@Req() req: Request, @Param('id', IdValidationPipe) id: string) {
-    const { _id: ownerId, role } = req.user as UserDocument;
+  async remove(
+    @Param('id', IdValidationPipe) id: string,
+    @User() { _id: ownerId, role }: UserDocument,
+  ) {
     return await this.reviewsService.remove(ownerId, role, id);
   }
 }

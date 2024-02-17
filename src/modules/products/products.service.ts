@@ -7,25 +7,18 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, PipelineStage } from 'mongoose';
-import { Product, ProductDocument } from 'src/schemas/product.schema';
-import { CreateProductDto } from './dto/create-product.dto';
-import { CloudinaryService } from '../cloudinary/cloudinary.service';
-import { FindProductsDto } from './dto/find-products.dto';
-import { IFindProductsFilter } from './products.interfaces';
 import { Types } from 'mongoose';
-import {
-  FAVORITE_ADD_SUCCES,
-  FAVORITE_REMOVE_SUCCES,
-  IMAGE_MISSING_ERROR,
-  IMAGE_NOT_FOUND_ERROR,
-  IMAGE_REMOVE_SUCCESS,
-  MAIN_IMAGE_REMOVE_ERROR,
-  PRODUCT_NOT_FOUND_ERROR,
-  PRODUCT_REMOVE_SUCCES,
-} from 'src/constants/product.constants';
-import { removeTmpFiles } from 'src/utils/removeTmpFiles';
-import { UpdateProductDto } from './dto/update-product.dto';
+
+import { CONST } from 'src/constants';
+import { CloudinaryService } from 'src/modules/cloudinary/cloudinary.service';
+import { Product, ProductDocument } from 'src/schemas/product.schema';
 import { UserDocument } from 'src/schemas/user.schema';
+import { removeTmpFiles } from 'src/utils/removeTmpFiles';
+
+import { CreateProductDto } from './dto/create-product.dto';
+import { FindProductsDto } from './dto/find-products.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
+import { IFindProductsFilter } from './products.interfaces';
 
 @Injectable()
 export class ProductsService {
@@ -38,9 +31,9 @@ export class ProductsService {
   async create(
     dto: CreateProductDto,
     files: { image: Express.Multer.File[]; gallery?: Express.Multer.File[] },
-  ): Promise<ProductDocument | null> {
+  ): Promise<ProductDocument> {
     if (!files.image) {
-      throw new BadRequestException(IMAGE_MISSING_ERROR);
+      throw new BadRequestException(CONST.Product.IMAGE_MISSING_ERROR);
     }
 
     const productImage: string = files.image[0].path;
@@ -82,7 +75,7 @@ export class ProductsService {
     removeTmpFiles(tmpFiles);
 
     if (!createdProduct) {
-      return null;
+      throw new InternalServerErrorException();
     }
 
     return createdProduct;
@@ -224,7 +217,7 @@ export class ProductsService {
   async findById(id: string): Promise<ProductDocument> {
     const product = await this.productModel.findById(id);
     if (!product) {
-      throw new NotFoundException(PRODUCT_NOT_FOUND_ERROR);
+      throw new NotFoundException(CONST.Product.NOT_FOUND_ERROR);
     }
     return product;
   }
@@ -242,7 +235,7 @@ export class ProductsService {
     });
 
     if (!updatedProduct) {
-      throw new NotFoundException(PRODUCT_NOT_FOUND_ERROR);
+      throw new NotFoundException(CONST.Product.NOT_FOUND_ERROR);
     }
 
     const newImages = [];
@@ -294,16 +287,14 @@ export class ProductsService {
     id: string,
     image: string,
   ): Promise<{ image: string; message: string }> {
-    const product = await this.productModel.findById(id);
-    if (!product) {
-      throw new NotFoundException(PRODUCT_NOT_FOUND_ERROR);
-    }
+    const product = await this.findById(id);
+
     if (image === product.imageURL) {
-      throw new ForbiddenException(MAIN_IMAGE_REMOVE_ERROR);
+      throw new ForbiddenException(CONST.Product.MAIN_IMAGE_REMOVE_ERROR);
     }
 
     if (!image || !product.imageGallery?.includes(image)) {
-      throw new NotFoundException(IMAGE_NOT_FOUND_ERROR);
+      throw new NotFoundException(CONST.Product.IMAGE_NOT_FOUND_ERROR);
     }
 
     const fileName = image.split('/').pop()?.split('.')[0];
@@ -320,12 +311,12 @@ export class ProductsService {
 
     const imgIndex = product.imageGallery.indexOf(image);
     if (imgIndex === -1) {
-      throw new NotFoundException(IMAGE_NOT_FOUND_ERROR);
+      throw new NotFoundException(CONST.Product.IMAGE_NOT_FOUND_ERROR);
     }
     product.imageGallery.splice(imgIndex, 1);
     await product.save();
 
-    return { image, message: IMAGE_REMOVE_SUCCESS };
+    return { image, message: CONST.Product.IMAGE_REMOVE_SUCCESS };
   }
 
   async updateFavorite(
@@ -335,11 +326,7 @@ export class ProductsService {
     const userId = user._id.toString();
     let message: string;
     let updatedProduct: ProductDocument | null;
-    const product = await this.productModel.findById(id);
-
-    if (!product) {
-      throw new NotFoundException(PRODUCT_NOT_FOUND_ERROR);
-    }
+    const product = await this.findById(id);
 
     if (product.favorite && product.favorite.includes(userId)) {
       updatedProduct = await this.productModel.findByIdAndUpdate(
@@ -349,7 +336,7 @@ export class ProductsService {
         },
         { new: true },
       );
-      message = `${product.name} ${FAVORITE_REMOVE_SUCCES}`;
+      message = `${product.name} ${CONST.Product.FAVORITE_REMOVE_SUCCES}`;
     } else {
       updatedProduct = await this.productModel.findByIdAndUpdate(
         id,
@@ -358,22 +345,18 @@ export class ProductsService {
         },
         { new: true },
       );
-      message = `${product.name} ${FAVORITE_ADD_SUCCES}`;
+      message = `${product.name} ${CONST.Product.FAVORITE_ADD_SUCCES}`;
     }
 
     if (!updatedProduct) {
-      throw new NotFoundException(PRODUCT_NOT_FOUND_ERROR);
+      throw new NotFoundException(CONST.Product.NOT_FOUND_ERROR);
     }
 
     return { product: updatedProduct, message };
   }
 
   async remove(id: string): Promise<{ _id: string; message: string }> {
-    const product = await this.productModel.findById(id);
-
-    if (!product) {
-      throw new NotFoundException(PRODUCT_NOT_FOUND_ERROR);
-    }
+    const product = await this.findById(id);
 
     await this.cloudinaryService.removeProductFolder(id, product.category);
 
@@ -381,7 +364,7 @@ export class ProductsService {
 
     return {
       _id: id,
-      message: `${product.name} ${PRODUCT_REMOVE_SUCCES}`,
+      message: `${product.name} ${CONST.Product.REMOVE_SUCCES}`,
     };
   }
 }

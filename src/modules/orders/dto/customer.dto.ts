@@ -1,16 +1,21 @@
-import { IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString, Matches } from 'class-validator';
+
+import { CONST } from 'src/constants';
 
 export class CustomerDto {
-  @IsString()
-  id: string;
+  @IsOptional()
+  @IsString({ message: CONST.User.DTO.id })
+  id?: string;
 
-  @IsString()
+  @IsString({ message: CONST.User.DTO.name })
   name: string;
 
   @IsOptional()
+  @Matches(CONST.Regexp.EMAIL, { message: CONST.User.DTO.email })
   @IsString()
   email?: string;
 
+  @Matches(CONST.Regexp.PHONE, { message: CONST.User.DTO.phone })
   @IsString()
   phone: string;
 }

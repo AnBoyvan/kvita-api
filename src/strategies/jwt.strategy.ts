@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Types } from 'mongoose';
 import { ExtractJwt, Strategy } from 'passport-jwt';
+
 import { AuthService } from 'src/modules/auth/auth.service';
 import { UserDocument } from 'src/schemas/user.schema';
 
@@ -22,6 +23,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   async validate(payload: { id: string }): Promise<UserDocument> {
     const id = new Types.ObjectId(payload.id);
     const user = await this.authService.current(id);
+
     if (!user) {
       throw new UnauthorizedException();
     }

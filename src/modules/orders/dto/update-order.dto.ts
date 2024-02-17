@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import {
   IsBoolean,
   IsEnum,
@@ -5,13 +6,15 @@ import {
   IsString,
   ValidateNested,
 } from 'class-validator';
+
+import { CONST } from 'src/constants';
 import { Status } from 'src/schemas/order.schema';
+
 import { PaymentDetailsDto } from './payment-details.dto';
-import { Type } from 'class-transformer';
 
 export class UpdateOrderDto {
   @IsOptional()
-  @IsEnum(Status)
+  @IsEnum(Status, { message: CONST.Order.DTO.status })
   status?: Status;
 
   @IsOptional()
@@ -31,7 +34,7 @@ export class UpdateOrderDto {
   paid?: boolean;
 
   @IsOptional()
-  @ValidateNested()
+  @ValidateNested({ each: true })
   @Type(() => PaymentDetailsDto)
   paymentDetails?: PaymentDetailsDto;
 }

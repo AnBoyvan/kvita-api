@@ -5,12 +5,11 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+
+import { CONST } from 'src/constants';
 import { Admin, AdminDocument } from 'src/schemas/admin.schema';
+
 import { CreateAdminDto } from './dto/create-admin.dto';
-import {
-  ADMIN_ALREADY_EXIST_ERROR,
-  ADMIN_NOT_FOUND_ERROR,
-} from 'src/constants/admin.constants';
 import { UpdateTagsDto } from './dto/update-tags.dto';
 
 @Injectable()
@@ -24,31 +23,27 @@ export class AdminService {
     const existed = await this.adminModel.findOne({ name: dto.name });
 
     if (existed) {
-      throw new BadRequestException(ADMIN_ALREADY_EXIST_ERROR);
+      throw new BadRequestException(CONST.Common.CONFIG_EXIST_ERROR);
     }
     return await this.adminModel.create(dto);
   }
 
-  async getTags(): Promise<string[]> {
-    const config = await this.adminModel.findOne({
-      name: 'config',
-    });
-
+  private async getConfigDocument(): Promise<AdminDocument> {
+    const config = await this.adminModel.findOne({ name: 'config' });
     if (!config) {
-      throw new InternalServerErrorException(ADMIN_NOT_FOUND_ERROR);
+      throw new InternalServerErrorException();
     }
+    return config;
+  }
+
+  async getTags(): Promise<string[]> {
+    const config = await this.getConfigDocument();
 
     return config.tags;
   }
 
   async addTags(dto: UpdateTagsDto): Promise<string[]> {
-    const config = await this.adminModel.findOne({
-      name: 'config',
-    });
-
-    if (!config) {
-      throw new InternalServerErrorException(ADMIN_NOT_FOUND_ERROR);
-    }
+    const config = await this.getConfigDocument();
 
     const newTags = dto.tags.filter(tag => !config.tags.includes(tag));
     const updatedTags = [...config.tags, ...newTags];
@@ -61,20 +56,14 @@ export class AdminService {
       { new: true },
     );
     if (!updatedConfig) {
-      throw new InternalServerErrorException(ADMIN_NOT_FOUND_ERROR);
+      throw new InternalServerErrorException();
     }
 
     return updatedConfig.tags;
   }
 
   async removeTags(dto: UpdateTagsDto): Promise<string[]> {
-    const config = await this.adminModel.findOne({
-      name: 'config',
-    });
-
-    if (!config) {
-      throw new InternalServerErrorException(ADMIN_NOT_FOUND_ERROR);
-    }
+    const config = await this.getConfigDocument();
 
     const updatedTags = config.tags.filter(tag => !dto.tags.includes(tag));
     const updatedConfig = await this.adminModel.findByIdAndUpdate(
@@ -86,7 +75,7 @@ export class AdminService {
     );
 
     if (!updatedConfig) {
-      throw new InternalServerErrorException(ADMIN_NOT_FOUND_ERROR);
+      throw new InternalServerErrorException();
     }
 
     return updatedConfig.tags;

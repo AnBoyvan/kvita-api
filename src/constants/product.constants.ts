@@ -1,8 +1,15 @@
-export const IMAGE_MISSING_ERROR = 'Додайте зображення';
-export const PRODUCT_NOT_FOUND_ERROR = 'Товару з таким ID не знайдено';
-export const IMAGE_NOT_FOUND_ERROR = 'Зображення не знайдено';
-export const MAIN_IMAGE_REMOVE_ERROR = 'Неможливо видалити головне фото';
-export const IMAGE_REMOVE_SUCCESS = 'Зображення видалено';
-export const FAVORITE_ADD_SUCCES = 'додано в Улюблені';
-export const FAVORITE_REMOVE_SUCCES = 'видалено з Улюблених';
-export const PRODUCT_REMOVE_SUCCES = 'видалено';
+export const productConstants = {
+  IMAGE_MISSING_ERROR: 'Додайте зображення',
+  NOT_FOUND_ERROR: 'Товару з таким ID не знайдено',
+  IMAGE_NOT_FOUND_ERROR: 'Зображення не знайдено',
+  MAIN_IMAGE_REMOVE_ERROR: 'Неможливо видалити головне фото',
+  IMAGE_REMOVE_SUCCESS: 'Зображення видалено',
+  FAVORITE_ADD_SUCCES: 'додано в Улюблені',
+  FAVORITE_REMOVE_SUCCES: 'видалено з Улюблених',
+  REMOVE_SUCCES: 'видалено',
+  DTO: {
+    name: 'ID товару не вказано',
+    price: 'Ціну товару не вказано',
+    category: 'Категорія не відповідає допустимим значенням',
+  },
+};

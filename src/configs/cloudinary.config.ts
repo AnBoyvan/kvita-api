@@ -1,21 +1,28 @@
+import { InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ConfigOptions, v2 } from 'cloudinary';
-import { CLOUDINARY_AUTHORIZATION_ERROR } from 'src/constants/cloudinary.constants';
+
+import { CONST } from 'src/constants';
+import { CloudinaryConfig } from 'src/modules/cloudinary/cloudinary.interfaces';
 
 export const getCloudinaryConfig = (
   configService: ConfigService,
 ): ConfigOptions => {
-  const cloud_name = configService.get('CLOUDINARY_NAME');
-  const api_key = configService.get('CLOUDINARY_KEY');
-  const api_secret = configService.get('CLOUDINARY_SECRET');
+  const cloudinaryConfig: CloudinaryConfig = {
+    cloud_name: configService.get('CLOUDINARY_NAME') || '',
+    api_key: configService.get('CLOUDINARY_KEY') || '',
+    api_secret: configService.get('CLOUDINARY_SECRET') || '',
+  };
 
-  if (!cloud_name || !api_key || !api_secret) {
-    throw new Error(CLOUDINARY_AUTHORIZATION_ERROR);
+  if (!isValidCloudinaryConfig(cloudinaryConfig)) {
+    throw new InternalServerErrorException(
+      CONST.Cloudinary.AUTHORIZATION_ERROR,
+    );
   }
 
-  return v2.config({
-    cloud_name,
-    api_key,
-    api_secret,
-  });
+  return v2.config(cloudinaryConfig);
+};
+
+const isValidCloudinaryConfig = (config: CloudinaryConfig): boolean => {
+  return !!config.cloud_name && !!config.api_key && !!config.api_secret;
 };

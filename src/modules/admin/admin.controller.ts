@@ -8,11 +8,13 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { AdminService } from './admin.service';
-import { SuperuserAccessGuard } from 'src/guards/superuser-access.guard';
+
 import { JwtAuthGuard } from 'src/guards/jwt.guard';
-import { CreateAdminDto } from './dto/create-admin.dto';
 import { ManagerAccessGuard } from 'src/guards/manager-access.guard';
+import { SuperuserAccessGuard } from 'src/guards/superuser-access.guard';
+
+import { AdminService } from './admin.service';
+import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateTagsDto } from './dto/update-tags.dto';
 
 @Controller('admin')

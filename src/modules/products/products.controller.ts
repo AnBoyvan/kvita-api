@@ -7,25 +7,26 @@ import {
   Patch,
   Post,
   Query,
-  Req,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { ProductsService } from './products.service';
-import { CreateProductDto } from './dto/create-product.dto';
-import { FindProductsDto } from './dto/find-products.dto';
-import { IdValidationPipe } from 'src/pipes/id-validation.pipe';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
+
+import { User } from 'src/decorators/user.decorator';
 import { JwtAuthGuard } from 'src/guards/jwt.guard';
 import { ManagerAccessGuard } from 'src/guards/manager-access.guard';
-import { Request } from 'express';
-import { UserDocument } from 'src/schemas/user.schema';
-import { UpdateProductDto } from './dto/update-product.dto';
-import { RemoveGalleryImageDto } from './dto/remove-gallery-image.dto';
 import { SuperuserAccessGuard } from 'src/guards/superuser-access.guard';
+import { IdValidationPipe } from 'src/pipes/id-validation.pipe';
+import { UserDocument } from 'src/schemas/user.schema';
+
+import { CreateProductDto } from './dto/create-product.dto';
+import { FindProductsDto } from './dto/find-products.dto';
+import { RemoveGalleryImageDto } from './dto/remove-gallery-image.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
+import { ProductsService } from './products.service';
 
 @Controller('products')
 export class ProductsController {
@@ -70,8 +71,7 @@ export class ProductsController {
 
   @UseGuards(JwtAuthGuard)
   @Get('favorite')
-  async getFavorite(@Req() req: Request) {
-    const { _id } = req.user as UserDocument;
+  async getFavorite(@User() { _id }: UserDocument) {
     return await this.productsService.findFavorite(_id);
   }
 
@@ -124,9 +124,8 @@ export class ProductsController {
   @Patch(':id/favorite')
   async updateFaforite(
     @Param('id', IdValidationPipe) id: string,
-    @Req() req: Request,
+    @User() user: UserDocument,
   ) {
-    const user = req.user as UserDocument;
     return await this.productsService.updateFavorite(id, user);
   }
 

@@ -1,13 +1,20 @@
+import { InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { MongooseModuleOptions } from '@nestjs/mongoose';
 
 export const getMongoConfig = async (
   configService: ConfigService,
 ): Promise<MongooseModuleOptions> => {
-  return {
+  const mongoConfig: MongooseModuleOptions = {
     uri: getMongoString(configService),
     ...getMongoOptions(),
   };
+
+  if (!isValidMongoConfig(mongoConfig)) {
+    throw new InternalServerErrorException();
+  }
+
+  return mongoConfig;
 };
 
 const getMongoString = (configService: ConfigService) =>
@@ -26,3 +33,7 @@ const getMongoOptions = () => ({
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
+
+const isValidMongoConfig = (config: MongooseModuleOptions): boolean => {
+  return !!config.uri;
+};

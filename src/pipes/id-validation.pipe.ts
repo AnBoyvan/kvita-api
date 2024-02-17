@@ -5,7 +5,8 @@ import {
   PipeTransform,
 } from '@nestjs/common';
 import { Types } from 'mongoose';
-import { ID_VALIDATION_ERROR } from 'src/constants/id-validation.constants';
+
+import { CONST } from 'src/constants';
 
 @Injectable()
 export class IdValidationPipe implements PipeTransform {
@@ -14,7 +15,7 @@ export class IdValidationPipe implements PipeTransform {
       return value;
     }
     if (!Types.ObjectId.isValid(value)) {
-      throw new BadRequestException(ID_VALIDATION_ERROR);
+      throw new BadRequestException(CONST.Common.ID_VALIDATION_ERROR);
     }
     return value;
   }

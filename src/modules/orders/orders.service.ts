@@ -1,18 +1,17 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, PipelineStage, Types } from 'mongoose';
-import { Order, OrderDocument, Status } from 'src/schemas/order.schema';
-import { CreateOrderDto } from './dto/create-order.dto';
 import { format } from 'date-fns';
-import { v4 as uuid } from 'uuid';
 import { utcToZonedTime } from 'date-fns-tz';
+import { Model, PipelineStage, Types } from 'mongoose';
+import { v4 as uuid } from 'uuid';
+
+import { CONST } from 'src/constants';
+import { Order, OrderDocument, Status } from 'src/schemas/order.schema';
+
+import { CreateOrderDto } from './dto/create-order.dto';
 import { FindOrdersDto } from './dto/find-orders.dto';
-import { IFindOrdersFilter } from './orders.interfaces';
-import {
-  ORDER_NOT_FOUND_ERROR,
-  ORDER_REMOVE_SUCCES,
-} from 'src/constants/order.constants';
 import { UpdateOrderDto } from './dto/update-order.dto';
+import { IFindOrdersFilter } from './orders.interfaces';
 import { TelegramService } from '../telegram/telegram.service';
 
 @Injectable()
@@ -117,7 +116,7 @@ export class OrdersService {
     const order = await this.orderModel.findById(id);
 
     if (!order) {
-      throw new NotFoundException(ORDER_NOT_FOUND_ERROR);
+      throw new NotFoundException(CONST.Order.NOT_FOUND_ERROR);
     }
 
     return order;
@@ -129,28 +128,22 @@ export class OrdersService {
     });
 
     if (!order) {
-      throw new NotFoundException(ORDER_NOT_FOUND_ERROR);
+      throw new NotFoundException(CONST.Order.NOT_FOUND_ERROR);
     }
 
     return order;
   }
 
   async remove(id: string): Promise<{ _id: string; message: string }> {
-    const order = await this.orderModel.findById(id);
-
-    if (!order) {
-      throw new NotFoundException(ORDER_NOT_FOUND_ERROR);
-    }
-
     const deletedOrder = await this.orderModel.findByIdAndDelete(id);
 
     if (!deletedOrder) {
-      throw new NotFoundException(ORDER_NOT_FOUND_ERROR);
+      throw new NotFoundException(CONST.Order.NOT_FOUND_ERROR);
     }
 
     return {
       _id: id,
-      message: ORDER_REMOVE_SUCCES,
+      message: CONST.Order.REMOVE_SUCCESS,
     };
   }
 }

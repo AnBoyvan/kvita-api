@@ -1,5 +1,9 @@
 import { ModuleMetadata } from '@nestjs/common';
 
+export interface TelegramConfig {
+  token: string;
+}
+
 export interface ITelegramOptions {
   token: string;
 }

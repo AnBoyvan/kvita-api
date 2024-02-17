@@ -1,15 +1,19 @@
+import { Type } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
   IsNumber,
   IsOptional,
   IsString,
+  Min,
   ValidateNested,
 } from 'class-validator';
+
+import { CONST } from 'src/constants';
+
 import { CartItemDto } from './cart-item.dto';
 import { CustomerDto } from './customer.dto';
 import { PaymentDetailsDto } from './payment-details.dto';
-import { Type } from 'class-transformer';
 
 export class CreateOrderDto {
   @IsArray()
@@ -18,22 +22,25 @@ export class CreateOrderDto {
   items: CartItemDto[];
 
   @IsOptional()
-  @IsNumber()
+  @IsNumber({}, { message: CONST.User.DTO.discount })
+  @Min(0, { message: CONST.Order.DTO.discount })
   discount?: number;
 
   @IsOptional()
   @IsNumber()
+  @Min(0, { message: CONST.Order.DTO.price })
   discountSum?: number;
 
   @IsNumber()
+  @Min(0, { message: CONST.Order.DTO.sum })
   total: number;
 
-  @ValidateNested()
+  @ValidateNested({ each: true })
   @Type(() => CustomerDto)
   customer: CustomerDto;
 
   @IsOptional()
-  @IsString()
+  @IsString({ message: CONST.Order.DTO.comment })
   comment?: string;
 
   @IsOptional()
@@ -49,7 +56,7 @@ export class CreateOrderDto {
   paid?: boolean;
 
   @IsOptional()
-  @ValidateNested()
+  @ValidateNested({ each: true })
   @Type(() => PaymentDetailsDto)
   paymentDetails?: PaymentDetailsDto;
 }

@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
-import { emailRegexp } from 'src/constants/user.constants';
+
+import { CONST } from 'src/constants';
 
 export enum Role {
   Customer = 'customer',
@@ -46,7 +47,7 @@ export class User {
   name: string;
 
   @Prop({
-    pattern: emailRegexp,
+    pattern: CONST.Regexp.EMAIL,
     unique: true,
   })
   email: string;
@@ -57,8 +58,8 @@ export class User {
   @Prop({ required: true })
   password: string;
 
-  @Prop({ enum: Role, default: Role.Customer })
-  role: string;
+  @Prop({ type: String, enum: Role, default: Role.Customer })
+  role: Role;
 
   @Prop({ min: 0, default: 0 })
   discount: number;

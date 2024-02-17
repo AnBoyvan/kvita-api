@@ -6,3 +6,9 @@ export interface ICloudinaryModuleAsyncOptions
   useFactory: (...args: any[]) => Promise<ConfigOptions> | ConfigOptions;
   inject?: any[];
 }
+
+export interface CloudinaryConfig {
+  cloud_name: string;
+  api_key: string;
+  api_secret: string;
+}

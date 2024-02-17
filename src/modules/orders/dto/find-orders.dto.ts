@@ -1,4 +1,4 @@
-import { IsOptional, IsString } from 'class-validator';
+import { IsIn, IsOptional, IsString } from 'class-validator';
 
 export class FindOrdersDto {
   @IsOptional()
@@ -43,6 +43,7 @@ export class FindOrdersDto {
 
   @IsOptional()
   @IsString()
+  @IsIn(['asc', 'desc'])
   sortOrder?: string;
 
   @IsOptional()

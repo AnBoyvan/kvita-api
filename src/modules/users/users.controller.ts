@@ -6,24 +6,24 @@ import {
   Param,
   Patch,
   Query,
-  Req,
-  UnauthorizedException,
   UseGuards,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { UsersService } from './users.service';
-import { FindUsersDto } from './dto/find-users.dto';
-import { ManagerAccessGuard } from 'src/guards/manager-access.guard';
+import { Types } from 'mongoose';
+
+import { User } from 'src/decorators/user.decorator';
 import { JwtAuthGuard } from 'src/guards/jwt.guard';
+import { ManagerAccessGuard } from 'src/guards/manager-access.guard';
+import { SuperuserAccessGuard } from 'src/guards/superuser-access.guard';
 import { IdValidationPipe } from 'src/pipes/id-validation.pipe';
 import { UserDocument } from 'src/schemas/user.schema';
-import { Request } from 'express';
-import { UpdateByUserDto } from './dto/update-by-user.dto';
+
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { FindUsersDto } from './dto/find-users.dto';
 import { UpdateByAdminDto } from './dto/update-by-admin.dto';
-import { Types } from 'mongoose';
-import { SuperuserAccessGuard } from 'src/guards/superuser-access.guard';
+import { UpdateByUserDto } from './dto/update-by-user.dto';
+import { UsersService } from './users.service';
 
 @Controller('users')
 export class UsersController {
@@ -49,11 +49,10 @@ export class UsersController {
   )
   @UseGuards(JwtAuthGuard)
   @Patch()
-  async updateByUser(@Req() req: Request, @Body() dto: UpdateByUserDto) {
-    const { _id } = req.user as UserDocument;
-    if (!req.user) {
-      throw new UnauthorizedException();
-    }
+  async updateByUser(
+    @Body() dto: UpdateByUserDto,
+    @User() { _id }: UserDocument,
+  ) {
     return this.usersService.updateByUser(_id, dto);
   }
 
@@ -92,10 +91,9 @@ export class UsersController {
   @Patch(':id')
   async updateByAdmin(
     @Param('id', IdValidationPipe) id: Types.ObjectId,
-    @Req() req: Request,
     @Body() dto: UpdateByAdminDto,
+    @User() { role: adminRole }: UserDocument,
   ) {
-    const { role: adminRole } = req.user as UserDocument;
     return this.usersService.updateByAdmin(adminRole, id, dto);
   }
 

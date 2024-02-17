@@ -1,19 +1,19 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
-import { User, UserDocument } from 'src/schemas/user.schema';
-import { RegisterDto } from './dto/register.dto';
-import { compare, genSalt, hash } from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
+import { InjectModel } from '@nestjs/mongoose';
+import { compare, genSalt, hash } from 'bcryptjs';
+import { Model, Types } from 'mongoose';
+
+import { CONST } from 'src/constants';
+import { User, UserDocument } from 'src/schemas/user.schema';
+
 import { LoginDto } from './dto/login.dto';
-import {
-  ALREADY_REGISTERED_ERROR,
-  LOGIN_BAD_REQUEST_ERROR,
-} from 'src/constants/user.constants';
+import { RegisterDto } from './dto/register.dto';
 import { UsersService } from '../users/users.service';
 
 @Injectable()
@@ -24,12 +24,12 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly usersService: UsersService,
   ) {}
-
-  async register(dto: RegisterDto): Promise<UserDocument | null> {
+  async register(dto: RegisterDto): Promise<UserDocument> {
     const checkEmail = await this.usersService.findByEmail(dto.email);
     const checkPhone = await this.usersService.findByPhone(dto.phone);
+
     if (checkEmail || checkPhone) {
-      throw new BadRequestException(ALREADY_REGISTERED_ERROR);
+      throw new BadRequestException(CONST.User.ALREADY_REGISTERED_ERROR);
     }
 
     const salt = await genSalt(10);
@@ -37,7 +37,7 @@ export class AuthService {
     const accessToken = await this.jwtService.signAsync(dto.email);
     const newUser = { ...dto, password: passwordHash, accessToken };
 
-    return this.usersService.create(newUser);
+    return await this.usersService.create(newUser);
   }
 
   async validate({
@@ -48,7 +48,7 @@ export class AuthService {
     let user;
 
     if (!email && !phone) {
-      throw new UnauthorizedException(LOGIN_BAD_REQUEST_ERROR);
+      throw new UnauthorizedException(CONST.User.LOGIN_BAD_REQUEST_ERROR);
     } else if (email) {
       user = await this.userModel.findOne({ email });
     } else {
@@ -56,18 +56,18 @@ export class AuthService {
     }
 
     if (!user) {
-      throw new UnauthorizedException(LOGIN_BAD_REQUEST_ERROR);
+      throw new UnauthorizedException(CONST.User.LOGIN_BAD_REQUEST_ERROR);
     }
 
     const isCorrectPassword = await compare(password, user.password);
     if (!isCorrectPassword) {
-      throw new UnauthorizedException(LOGIN_BAD_REQUEST_ERROR);
+      throw new UnauthorizedException(CONST.User.LOGIN_BAD_REQUEST_ERROR);
     }
 
     return user._id;
   }
 
-  async login(dto: LoginDto): Promise<UserDocument | null> {
+  async login(dto: LoginDto): Promise<UserDocument> {
     const id = await this.validate(dto);
     const accessToken = this.jwtService.sign({ id });
 
@@ -81,6 +81,10 @@ export class AuthService {
       )
       .select('-password -verificationToken -passwordToken');
 
+    if (!user) {
+      throw new InternalServerErrorException();
+    }
+
     return user;
   }
 
@@ -90,10 +94,14 @@ export class AuthService {
     return;
   }
 
-  async current(id: Types.ObjectId): Promise<UserDocument | null> {
+  async current(id: Types.ObjectId): Promise<UserDocument> {
     const user = await this.userModel
       .findById(id)
       .select('-password -verificationToken -passwordToken');
+
+    if (!user) {
+      throw new InternalServerErrorException();
+    }
 
     return user;
   }
