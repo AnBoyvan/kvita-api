@@ -1,6 +1,5 @@
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as compression from 'compression';
 import helmet from 'helmet';
 
@@ -12,16 +11,6 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService);
   const port = await configService.get('PORT');
-
-  const config = new DocumentBuilder()
-    .setTitle('KViTa API')
-    .setDescription('API для онлайн-магазину кондитерської студії "КВіТа"')
-    .setVersion('1.0')
-    .addTag('КВіТа')
-    .addBearerAuth()
-    .build();
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('specification', app, document);
 
   app.setGlobalPrefix('api');
   app.useGlobalFilters(new ErrorFilter());
