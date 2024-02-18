@@ -11,6 +11,12 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
 
 import { User } from 'src/decorators/user.decorator';
 import { JwtAuthGuard } from 'src/guards/jwt.guard';
@@ -22,10 +28,13 @@ import { FindReviewsDto } from './dto/find-reviews.dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
 import { ReviewsService } from './reviews.service';
 
+@ApiTags('reviews')
 @Controller('reviews')
 export class ReviewsController {
   constructor(private readonly reviewsService: ReviewsService) {}
 
+  @ApiOperation({ summary: 'Створення відгуку' })
+  @ApiBearerAuth()
   @UsePipes(
     new ValidationPipe({
       whitelist: true,
@@ -37,6 +46,7 @@ export class ReviewsController {
     return await this.reviewsService.create(user, dto);
   }
 
+  @ApiOperation({ summary: 'Отримання відгуків' })
   @UsePipes(
     new ValidationPipe({
       whitelist: true,
@@ -47,11 +57,16 @@ export class ReviewsController {
     return await this.reviewsService.findReviews(dto);
   }
 
+  @ApiOperation({ summary: 'Отримання відгуку за ID' })
+  @ApiParam({ name: 'id', description: 'ID відгуку' })
   @Get(':id')
   async getById(@Param('id', IdValidationPipe) id: string) {
     return await this.reviewsService.findById(id);
   }
 
+  @ApiOperation({ summary: 'Оновлення відгуку' })
+  @ApiBearerAuth()
+  @ApiParam({ name: 'id', description: 'ID відгуку' })
   @UsePipes(
     new ValidationPipe({
       whitelist: true,
@@ -67,6 +82,9 @@ export class ReviewsController {
     return await this.reviewsService.update(_id, id, dto);
   }
 
+  @ApiOperation({ summary: 'Видалення відгуку' })
+  @ApiBearerAuth()
+  @ApiParam({ name: 'id', description: 'ID відгуку' })
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   async remove(

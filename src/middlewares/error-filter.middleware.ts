@@ -15,7 +15,16 @@ export class ErrorFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
     const status = exception.getStatus();
-    const message = exception.message || this.getErrorMessage(status);
+    const resp = exception.getResponse() || this.getErrorMessage(status);
+    let message: string;
+
+    if (typeof resp === 'string') {
+      message = resp;
+    } else if (typeof resp === 'object' && 'message' in resp) {
+      message = (resp as { message: string }).message;
+    } else {
+      message = this.getErrorMessage(status);
+    }
 
     response.status(status).json({
       statusCode: status || 500,

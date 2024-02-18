@@ -3,9 +3,9 @@ import { IsString, Matches } from 'class-validator';
 
 import { CONST } from 'src/constants';
 
-export class ChangePasswordDto {
+export class ChangePasswordRequestDto {
   @ApiProperty()
+  @Matches(CONST.Regexp.EMAIL, { message: CONST.User.DTO.email })
   @IsString()
-  @Matches(CONST.Regexp.PASSWORD, { message: CONST.User.DTO.password })
-  password: string;
+  email: string;
 }

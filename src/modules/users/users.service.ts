@@ -170,14 +170,10 @@ export class UsersService {
     return user;
   }
 
-  async findByEmail(email: string): Promise<UserDocument> {
+  async findByEmail(email: string): Promise<UserDocument | null> {
     const user = await this.userModel
       .findOne({ email })
       .select('-password -verificationToken -passwordToken -accessToken');
-
-    if (!user) {
-      throw new NotFoundException(CONST.User.NOT_FOUND_ERROR);
-    }
 
     return user;
   }
@@ -187,6 +183,19 @@ export class UsersService {
       .findOne({ phone })
       .select('-password -verificationToken -passwordToken -accessToken');
 
+    return user;
+  }
+
+  async updateByUser(
+    _id: Types.ObjectId,
+    dto: UpdateByUserDto,
+  ): Promise<UserDocument> {
+    const user = await this.userModel
+      .findByIdAndUpdate({ _id }, dto, {
+        new: true,
+      })
+      .select('-password -verificationToken -passwordToken');
+
     if (!user) {
       throw new NotFoundException(CONST.User.NOT_FOUND_ERROR);
     }
@@ -194,22 +203,15 @@ export class UsersService {
     return user;
   }
 
-  async updateByUser(
-    _id: Types.ObjectId,
-    dto: UpdateByUserDto,
-  ): Promise<UserDocument | null> {
-    const user = await this.userModel
-      .findByIdAndUpdate({ _id }, dto, {
-        new: true,
-      })
-      .select('-password -verificationToken -passwordToken');
-    return user;
-  }
-
   async changePasswordRequest(email: string): Promise<{ message: string }> {
     const user = await this.findByEmail(email);
 
     const passwordToken = uuid();
+
+    if (!user) {
+      throw new NotFoundException(CONST.User.NOT_FOUND_ERROR);
+    }
+
     await this.userModel.findByIdAndUpdate(user._id, {
       $set: { passwordToken },
     });
@@ -243,7 +245,7 @@ export class UsersService {
     adminRole: string,
     id: Types.ObjectId,
     dto: UpdateByAdminDto,
-  ) {
+  ): Promise<UserDocument> {
     if (
       dto.role === Role.Manager &&
       adminRole !== Role.Admin &&
@@ -269,17 +271,21 @@ export class UsersService {
     return updatedUser;
   }
 
-  async remove(id: Types.ObjectId) {
-    const checkUser = await this.userModel.findById(id);
-    if (!checkUser) {
-      throw new NotFoundException(CONST.User.NOT_FOUND_ERROR);
-    }
+  async remove(id: string): Promise<{ user: UserDocument; message: string }> {
+    const checkUser = await this.findById(id);
+
     if (checkUser.role === Role.Superuser) {
       throw new ForbiddenException(CONST.User.ACCESS_ERROR);
     }
-    const user = await this.userModel
+    const modifyResult = await this.userModel
       .findByIdAndDelete(id)
       .select('-password -verificationToken -passwordToken -accessToken');
+
+    const user = modifyResult.value;
+
+    if (!user) {
+      throw new NotFoundException(CONST.User.NOT_FOUND_ERROR);
+    }
     return { user, message: CONST.User.REMOVE_SUCCESS };
   }
 }

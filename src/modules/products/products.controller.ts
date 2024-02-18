@@ -14,6 +14,13 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import {
+  ApiBearerAuth,
+  ApiConsumes,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
 
 import { User } from 'src/decorators/user.decorator';
 import { JwtAuthGuard } from 'src/guards/jwt.guard';
@@ -28,10 +35,14 @@ import { RemoveGalleryImageDto } from './dto/remove-gallery-image.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductsService } from './products.service';
 
+@ApiTags('products')
 @Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
+  @ApiOperation({ summary: 'Створення продукту' })
+  @ApiBearerAuth()
+  @ApiConsumes('multipart/form-data')
   @UsePipes(
     new ValidationPipe({
       whitelist: true,
@@ -54,6 +65,7 @@ export class ProductsController {
     return await this.productsService.create(dto, files);
   }
 
+  @ApiOperation({ summary: 'Отримання продуктів' })
   @UsePipes(
     new ValidationPipe({
       whitelist: true,
@@ -64,22 +76,31 @@ export class ProductsController {
     return await this.productsService.findProducts(dto);
   }
 
+  @ApiOperation({ summary: 'Отримання продуктів для головної сторінки' })
   @Get('main')
   async getForMain() {
     return await this.productsService.forMain();
   }
 
+  @ApiOperation({ summary: 'Отримання списку улюблених продуктів користувача' })
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('favorite')
   async getFavorite(@User() { _id }: UserDocument) {
     return await this.productsService.findFavorite(_id);
   }
 
+  @ApiOperation({ summary: 'Отримання продукту за ID' })
+  @ApiParam({ name: 'id', description: 'ID продукту' })
   @Get(':id')
   async getById(@Param('id', IdValidationPipe) id: string) {
     return await this.productsService.findById(id);
   }
 
+  @ApiOperation({ summary: 'Оновлення продукту' })
+  @ApiBearerAuth()
+  @ApiParam({ name: 'id', description: 'ID продукту' })
+  @ApiConsumes('multipart/form-data')
   @UsePipes(
     new ValidationPipe({
       whitelist: true,
@@ -106,6 +127,9 @@ export class ProductsController {
     return await this.productsService.update(files, id, dto);
   }
 
+  @ApiOperation({ summary: 'Видалення зображення з галереї продукту' })
+  @ApiBearerAuth()
+  @ApiParam({ name: 'id', description: 'ID продукту' })
   @UsePipes(
     new ValidationPipe({
       whitelist: true,
@@ -120,6 +144,9 @@ export class ProductsController {
     return await this.productsService.removeGalleryImage(id, image);
   }
 
+  @ApiOperation({ summary: 'Оновлення улюблених продуктів користувача' })
+  @ApiBearerAuth()
+  @ApiParam({ name: 'id', description: 'ID продукту' })
   @UseGuards(JwtAuthGuard)
   @Patch(':id/favorite')
   async updateFaforite(
@@ -129,6 +156,9 @@ export class ProductsController {
     return await this.productsService.updateFavorite(id, user);
   }
 
+  @ApiOperation({ summary: 'Видалення продукту' })
+  @ApiBearerAuth()
+  @ApiParam({ name: 'id', description: 'ID продукту' })
   @UseGuards(JwtAuthGuard, SuperuserAccessGuard)
   @Delete(':id')
   async remove(@Param('id', IdValidationPipe) id: string) {

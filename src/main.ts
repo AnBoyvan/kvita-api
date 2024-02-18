@@ -15,8 +15,10 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('KViTa API')
+    .setDescription('API для онлайн-магазину кондитерської студії "КВіТа"')
     .setVersion('1.0')
     .addTag('КВіТа')
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('specification', app, document);
