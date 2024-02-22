@@ -14,13 +14,13 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { Types } from 'mongoose';
 
-import { User } from 'src/decorators/user.decorator';
+import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { JwtAuthGuard } from 'src/guards/jwt.guard';
 import { ManagerAccessGuard } from 'src/guards/manager-access.guard';
 import { SuperuserAccessGuard } from 'src/guards/superuser-access.guard';
 import { IdValidationPipe } from 'src/pipes/id-validation.pipe';
-import { UserDocument } from 'src/schemas/user.schema';
 
 import { CreateProductDto } from './dto/create-product.dto';
 import { FindProductsDto } from './dto/find-products.dto';
@@ -71,7 +71,7 @@ export class ProductsController {
 
   @UseGuards(JwtAuthGuard)
   @Get('favorite')
-  async getFavorite(@User() { _id }: UserDocument) {
+  async getFavorite(@CurrentUser('_id') _id: Types.ObjectId) {
     return await this.productsService.findFavorite(_id);
   }
 
@@ -124,9 +124,9 @@ export class ProductsController {
   @Patch(':id/favorite')
   async updateFaforite(
     @Param('id', IdValidationPipe) id: string,
-    @User() user: UserDocument,
+    @CurrentUser('_id') userId: Types.ObjectId,
   ) {
-    return await this.productsService.updateFavorite(id, user);
+    return await this.productsService.updateFavorite(id, userId);
   }
 
   @UseGuards(JwtAuthGuard, SuperuserAccessGuard)

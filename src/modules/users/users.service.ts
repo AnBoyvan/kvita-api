@@ -6,46 +6,46 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { genSalt, hash } from 'bcryptjs';
-import { Model, PipelineStage, Types } from 'mongoose';
+import { Model, ModifyResult, PipelineStage, Types } from 'mongoose';
 import { v4 as uuid } from 'uuid';
 
 import { CONST } from 'src/constants';
 import { Role, User, UserDocument } from 'src/schemas/user.schema';
 
-import { CreateUserDto } from './dto/create-user.dto';
 import { FindUsersDto } from './dto/find-users.dto';
 import { UpdateByAdminDto } from './dto/update-by-admin.dto';
 import { UpdateByUserDto } from './dto/update-by-user.dto';
 import { IFindUsersFilter } from './user.interfaces';
+import { RegisterDto } from '../auth/dto/register.dto';
 import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class UsersService {
+  private HIDE_OPTIONS = '-password -verificationToken -passwordToken';
+
   constructor(
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
     private readonly emailService: EmailService,
   ) {}
 
-  async create(dto: CreateUserDto): Promise<UserDocument> {
-    try {
-      const newUser = await this.userModel.create({
-        ...dto,
-        role: Role.Customer,
-      });
+  async create(dto: RegisterDto): Promise<UserDocument> {
+    const salt = await genSalt(10);
+    const passwordHash = await hash(dto.password, salt);
 
-      const user = await this.userModel
-        .findById(newUser._id)
-        .select('-password -verificationToken -passwordToken');
+    const newUser = await this.userModel.create({
+      ...dto,
+      password: passwordHash,
+      role: Role.Customer,
+    });
 
-      if (!user) {
-        throw new InternalServerErrorException();
-      }
+    const safeUser = this.findById(newUser._id.toString());
 
-      return user;
-    } catch (error) {
+    if (!safeUser) {
       throw new InternalServerErrorException();
     }
+
+    return safeUser;
   }
 
   async findAll(
@@ -149,19 +149,20 @@ export class UsersService {
         password: 0,
         verificationToken: 0,
         passwordToken: 0,
-        accessToken: 0,
       },
     });
 
     const count = await this.userModel.countDocuments(filter);
     const result = await this.userModel.aggregate(pipeline);
+
     return { result, count };
   }
 
   async findById(id: string): Promise<UserDocument> {
     const user = await this.userModel
       .findById(id)
-      .select('-password -verificationToken -passwordToken -accessToken');
+      .select(this.HIDE_OPTIONS)
+      .exec();
 
     if (!user) {
       throw new NotFoundException(CONST.User.NOT_FOUND_ERROR);
@@ -171,19 +172,11 @@ export class UsersService {
   }
 
   async findByEmail(email: string): Promise<UserDocument | null> {
-    const user = await this.userModel
-      .findOne({ email })
-      .select('-password -verificationToken -passwordToken -accessToken');
-
-    return user;
+    return await this.userModel.findOne({ email }).exec();
   }
 
   async findByPhone(phone: string): Promise<UserDocument | null> {
-    const user = await this.userModel
-      .findOne({ phone })
-      .select('-password -verificationToken -passwordToken -accessToken');
-
-    return user;
+    return await this.userModel.findOne({ phone }).exec();
   }
 
   async updateByUser(
@@ -194,7 +187,7 @@ export class UsersService {
       .findByIdAndUpdate({ _id }, dto, {
         new: true,
       })
-      .select('-password -verificationToken -passwordToken');
+      .select(this.HIDE_OPTIONS);
 
     if (!user) {
       throw new NotFoundException(CONST.User.NOT_FOUND_ERROR);
@@ -264,25 +257,24 @@ export class UsersService {
       .findByIdAndUpdate(id, dto, {
         new: true,
       })
-      .select('-password -verificationToken -passwordToken -accessToken');
+      .select(this.HIDE_OPTIONS);
     if (!updatedUser) {
       throw new NotFoundException(CONST.User.NOT_FOUND_ERROR);
     }
     return updatedUser;
   }
 
-  async remove(id: string): Promise<{ user: UserDocument; message: string }> {
+  async remove(
+    id: string,
+  ): Promise<{ user: ModifyResult<UserDocument>; message: string }> {
     const checkUser = await this.findById(id);
 
     if (checkUser.role === Role.Superuser) {
       throw new ForbiddenException(CONST.User.ACCESS_ERROR);
     }
-    const modifyResult = await this.userModel
+    const user = await this.userModel
       .findByIdAndDelete(id)
-      .select('-password -verificationToken -passwordToken -accessToken');
-
-    const user = modifyResult.value;
-
+      .select(this.HIDE_OPTIONS);
     if (!user) {
       throw new NotFoundException(CONST.User.NOT_FOUND_ERROR);
     }

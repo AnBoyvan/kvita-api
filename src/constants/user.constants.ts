@@ -1,4 +1,7 @@
 export const userConstants = {
+  REFRESH_TOKEN_INVALID_ERROR: 'Токен недійсний',
+  REFRESH_TOKEN_MISSING_ERROR: 'Необхідний токен',
+  REFRESH_TOKEN_EXPIRED_ERROR: 'Термін дії токена закінчився',
   ALREADY_REGISTERED_ERROR:
     'Користувач з вказаною поштою чи номером телефону вже зареєстрований',
   LOGIN_BAD_REQUEST_ERROR: 'Невірний логін або пароль',

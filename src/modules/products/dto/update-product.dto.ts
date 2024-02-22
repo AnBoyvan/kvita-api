@@ -1,12 +1,4 @@
-import {
-  IsArray,
-  IsBoolean,
-  IsEnum,
-  IsNumber,
-  IsOptional,
-  IsString,
-  Min,
-} from 'class-validator';
+import { IsArray, IsEnum, IsString, IsOptional } from 'class-validator';
 
 import { CONST } from 'src/constants';
 import { Category } from 'src/schemas/product.schema';
@@ -15,17 +7,16 @@ export class UpdateProductDto {
   @IsString({ message: CONST.Product.DTO.name })
   name: string;
 
-  @IsNumber()
-  @Min(0, { message: CONST.Product.DTO.price })
-  price?: number;
+  @IsString({ message: CONST.Product.DTO.price })
+  price?: string;
 
   @IsOptional()
-  @IsNumber()
-  promo?: number;
+  @IsString()
+  promo?: string;
 
   @IsOptional()
-  @IsNumber()
-  promoPrice?: number;
+  @IsString()
+  promoPrice?: string;
 
   @IsOptional()
   @IsString()
@@ -43,26 +34,26 @@ export class UpdateProductDto {
   description?: string;
 
   @IsOptional()
-  @IsNumber()
-  calories?: number;
+  @IsString()
+  calories?: string;
 
   @IsOptional()
-  @IsNumber()
-  proteins?: number;
+  @IsString()
+  proteins?: string;
 
   @IsOptional()
-  @IsNumber()
-  fats?: number;
+  @IsString()
+  fats?: string;
 
   @IsOptional()
-  @IsNumber()
-  carbohydrates?: number;
+  @IsString()
+  carbohydrates?: string;
 
   @IsOptional()
-  @IsBoolean()
-  isActive?: boolean;
+  @IsString()
+  isActive?: string;
 
   @IsOptional()
-  @IsBoolean()
-  isNewProduct?: boolean;
+  @IsString()
+  isNewProduct?: string;
 }

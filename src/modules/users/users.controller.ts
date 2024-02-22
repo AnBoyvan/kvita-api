@@ -12,12 +12,12 @@ import {
 } from '@nestjs/common';
 import { Types } from 'mongoose';
 
-import { User } from 'src/decorators/user.decorator';
+import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { JwtAuthGuard } from 'src/guards/jwt.guard';
 import { ManagerAccessGuard } from 'src/guards/manager-access.guard';
 import { SuperuserAccessGuard } from 'src/guards/superuser-access.guard';
 import { IdValidationPipe } from 'src/pipes/id-validation.pipe';
-import { UserDocument } from 'src/schemas/user.schema';
+import { Role } from 'src/schemas/user.schema';
 
 import { ChangePasswordRequestDto } from './dto/change-password-request.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
@@ -52,7 +52,7 @@ export class UsersController {
   @Patch()
   async updateByUser(
     @Body() dto: UpdateByUserDto,
-    @User() { _id }: UserDocument,
+    @CurrentUser('_id') _id: Types.ObjectId,
   ) {
     return this.usersService.updateByUser(_id, dto);
   }
@@ -93,7 +93,7 @@ export class UsersController {
   async updateByAdmin(
     @Param('id', IdValidationPipe) id: Types.ObjectId,
     @Body() dto: UpdateByAdminDto,
-    @User() { role: adminRole }: UserDocument,
+    @CurrentUser('role') adminRole: Role,
   ) {
     return this.usersService.updateByAdmin(adminRole, id, dto);
   }

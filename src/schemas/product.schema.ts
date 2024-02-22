@@ -22,7 +22,7 @@ export class Product {
   @Prop({ default: 0 })
   promo?: number;
 
-  @Prop()
+  @Prop({ default: 0 })
   promoPrice?: number;
 
   @Prop({ default: '' })

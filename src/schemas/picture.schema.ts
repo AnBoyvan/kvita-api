@@ -17,7 +17,7 @@ export class Picture {
   @Prop({ default: '' })
   description?: string;
 
-  @Prop()
+  @Prop({ default: [] })
   tags?: string[];
 }
 

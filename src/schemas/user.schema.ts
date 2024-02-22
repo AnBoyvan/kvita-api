@@ -29,13 +29,13 @@ export class CartItem {
   @Prop({ required: true, min: 0 })
   price: number;
 
-  @Prop()
+  @Prop({ default: 0 })
   discount?: number;
 
-  @Prop()
+  @Prop({ default: 0 })
   discountSum?: number;
 
-  @Prop({ required: true, min: 0 })
+  @Prop({ required: true, min: 0, default: 0 })
   sum: number;
 }
 
@@ -49,10 +49,11 @@ export class User {
   @Prop({
     pattern: CONST.Regexp.EMAIL,
     unique: true,
+    default: '',
   })
   email: string;
 
-  @Prop({ unique: true })
+  @Prop({ unique: true, default: '' })
   phone: string;
 
   @Prop({ required: true })
@@ -67,16 +68,10 @@ export class User {
   @Prop({ type: () => [CartItem], default: [] })
   cart: CartItem[];
 
-  @Prop()
-  accessToken: string;
-
-  @Prop()
-  refreshToken: string;
-
   @Prop({ default: false })
   verify: boolean;
 
-  @Prop()
+  @Prop({ default: null })
   verificationToken: string;
 
   @Prop({ default: null })

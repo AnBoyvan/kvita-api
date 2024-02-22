@@ -12,7 +12,6 @@ import { Types } from 'mongoose';
 import { CONST } from 'src/constants';
 import { CloudinaryService } from 'src/modules/cloudinary/cloudinary.service';
 import { Product, ProductDocument } from 'src/schemas/product.schema';
-import { UserDocument } from 'src/schemas/user.schema';
 import { removeTmpFiles } from 'src/utils/removeTmpFiles';
 
 import { CreateProductDto } from './dto/create-product.dto';
@@ -321,14 +320,13 @@ export class ProductsService {
 
   async updateFavorite(
     id: string,
-    user: UserDocument,
+    userId: Types.ObjectId,
   ): Promise<{ product: ProductDocument; message: string }> {
-    const userId = user._id.toString();
     let message: string;
     let updatedProduct: ProductDocument | null;
     const product = await this.findById(id);
 
-    if (product.favorite && product.favorite.includes(userId)) {
+    if (product.favorite && product.favorite.includes(userId.toString())) {
       updatedProduct = await this.productModel.findByIdAndUpdate(
         id,
         {

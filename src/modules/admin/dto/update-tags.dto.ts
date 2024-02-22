@@ -1,6 +1,7 @@
-import { IsArray } from 'class-validator';
+import { IsArray, IsString } from 'class-validator';
 
 export class UpdateTagsDto {
-  @IsArray({ each: true })
+  @IsArray()
+  @IsString({ each: true })
   tags: string[];
 }

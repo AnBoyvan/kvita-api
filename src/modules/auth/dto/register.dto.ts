@@ -7,14 +7,14 @@ export class RegisterDto {
   name: string;
 
   @Matches(CONST.Regexp.EMAIL, { message: CONST.User.DTO.email })
-  @IsString()
+  @IsString({ message: CONST.User.DTO.email })
   email: string;
 
   @Matches(CONST.Regexp.PHONE, { message: CONST.User.DTO.phone })
-  @IsString()
+  @IsString({ message: CONST.User.DTO.phone })
   phone: string;
 
   @Matches(CONST.Regexp.PASSWORD, { message: CONST.User.DTO.password })
-  @IsString()
+  @IsString({ message: CONST.User.DTO.password })
   password: string;
 }

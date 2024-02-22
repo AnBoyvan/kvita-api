@@ -11,8 +11,9 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
+import { Types } from 'mongoose';
 
-import { User } from 'src/decorators/user.decorator';
+import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { JwtAuthGuard } from 'src/guards/jwt.guard';
 import { IdValidationPipe } from 'src/pipes/id-validation.pipe';
 import { UserDocument } from 'src/schemas/user.schema';
@@ -33,7 +34,10 @@ export class ReviewsController {
   )
   @UseGuards(JwtAuthGuard)
   @Post()
-  async create(@Body() dto: CreateReviewDto, @User() user: UserDocument) {
+  async create(
+    @Body() dto: CreateReviewDto,
+    @CurrentUser() user: UserDocument,
+  ) {
     return await this.reviewsService.create(user, dto);
   }
 
@@ -62,16 +66,16 @@ export class ReviewsController {
   async update(
     @Param('id', IdValidationPipe) id: string,
     @Body() dto: UpdateReviewDto,
-    @User() { _id }: UserDocument,
+    @CurrentUser('_id') userId: Types.ObjectId,
   ) {
-    return await this.reviewsService.update(_id, id, dto);
+    return await this.reviewsService.update(userId, id, dto);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   async remove(
     @Param('id', IdValidationPipe) id: string,
-    @User() { _id: ownerId, role }: UserDocument,
+    @CurrentUser() { _id: ownerId, role }: UserDocument,
   ) {
     return await this.reviewsService.remove(ownerId, role, id);
   }

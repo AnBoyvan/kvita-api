@@ -1,17 +1,17 @@
 import {
   Body,
   Controller,
-  Get,
   HttpCode,
   Post,
-  UseGuards,
+  Req,
+  Res,
+  UnauthorizedException,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
+import { Request, Response } from 'express';
 
-import { User } from 'src/decorators/user.decorator';
-import { JwtAuthGuard } from 'src/guards/jwt.guard';
-import { UserDocument } from 'src/schemas/user.schema';
+import { CONST } from 'src/constants';
 
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
@@ -28,8 +28,13 @@ export class AuthController {
     }),
   )
   @Post('register')
-  async register(@Body() dto: RegisterDto) {
-    return await this.authService.register(dto);
+  async register(
+    @Body() dto: RegisterDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { refreshToken, ...data } = await this.authService.register(dto);
+    this.authService.addRefreshTokenToResponse(res, refreshToken);
+    return data;
   }
 
   @UsePipes(
@@ -39,20 +44,42 @@ export class AuthController {
     }),
   )
   @Post('login')
-  async login(@Body() dto: LoginDto) {
-    return await this.authService.login(dto);
+  @HttpCode(200)
+  async login(
+    @Body() dto: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { refreshToken, ...data } = await this.authService.login(dto);
+    this.authService.addRefreshTokenToResponse(res, refreshToken);
+    return data;
   }
 
-  @UseGuards(JwtAuthGuard)
   @HttpCode(204)
   @Post('logout')
-  async logout(@User() { _id }: UserDocument) {
-    return await this.authService.logout(_id);
+  async logout(@Res({ passthrough: true }) res: Response) {
+    this.authService.removeRefreshTokenToResponse(res);
+    return true;
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Get('current')
-  async getCurrent(@User() { _id }: UserDocument) {
-    return await this.authService.current(_id);
+  @HttpCode(200)
+  @Post('access-token')
+  async refreshToken(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const requestRefreshToken =
+      req.cookies[this.authService.REFRESH_TOKEN_NAME];
+
+    if (!requestRefreshToken) {
+      this.authService.removeRefreshTokenToResponse(res);
+      throw new UnauthorizedException(CONST.User.REFRESH_TOKEN_MISSING_ERROR);
+    }
+
+    const { refreshToken, ...response } =
+      await this.authService.refresh(requestRefreshToken);
+
+    this.authService.addRefreshTokenToResponse(res, refreshToken);
+
+    return response;
   }
 }

@@ -11,13 +11,13 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
+import { Types } from 'mongoose';
 
-import { User } from 'src/decorators/user.decorator';
+import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { JwtAuthGuard } from 'src/guards/jwt.guard';
 import { ManagerAccessGuard } from 'src/guards/manager-access.guard';
 import { SuperuserAccessGuard } from 'src/guards/superuser-access.guard';
 import { IdValidationPipe } from 'src/pipes/id-validation.pipe';
-import { UserDocument } from 'src/schemas/user.schema';
 
 import { CreateOrderDto } from './dto/create-order.dto';
 import { FindOrdersDto } from './dto/find-orders.dto';
@@ -51,7 +51,7 @@ export class OrdersController {
 
   @UseGuards(JwtAuthGuard)
   @Get('own')
-  async getOwn(@User() { _id }: UserDocument) {
+  async getOwn(@CurrentUser('_id') _id: Types.ObjectId) {
     return await this.ordersService.findCustomerOrders(_id);
   }
 

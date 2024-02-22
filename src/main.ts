@@ -1,6 +1,7 @@
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import * as compression from 'compression';
+import * as cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 
 import { AppModule } from './app.module';
@@ -13,8 +14,12 @@ async function bootstrap() {
   const port = await configService.get('PORT');
 
   app.setGlobalPrefix('api');
-  app.useGlobalFilters(new ErrorFilter());
-  app.enableCors();
+  app.use(cookieParser());
+  app.enableCors({
+    origin: true,
+    credentials: true,
+    exposedHeaders: 'set-cookie',
+  });
   app.use(
     helmet({
       contentSecurityPolicy: {
@@ -28,6 +33,7 @@ async function bootstrap() {
     }),
   );
   app.use(compression());
+  app.useGlobalFilters(new ErrorFilter());
   await app.listen(port);
 }
 bootstrap();

@@ -1,4 +1,4 @@
-import { IsEnum, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { IsEnum, IsString, IsOptional } from 'class-validator';
 
 import { CONST } from 'src/constants';
 import { Category } from 'src/schemas/product.schema';
@@ -7,19 +7,16 @@ export class CreateProductDto {
   @IsString({ message: CONST.Product.DTO.name })
   name: string;
 
-  @IsNumber()
-  @Min(0, { message: CONST.Product.DTO.price })
-  price: number;
+  @IsString({ message: CONST.Product.DTO.price })
+  price: string;
 
   @IsOptional()
-  @IsNumber()
-  @Min(0)
-  promo?: number;
+  @IsString()
+  promo?: string;
 
   @IsOptional()
-  @IsNumber()
-  @Min(0)
-  promoPrice?: number;
+  @IsString()
+  promoPrice?: string;
 
   @IsOptional()
   @IsString()
@@ -29,18 +26,18 @@ export class CreateProductDto {
   category: Category;
 
   @IsOptional()
-  @IsNumber()
-  calories?: number;
+  @IsString()
+  calories?: string;
 
   @IsOptional()
-  @IsNumber()
-  proteins?: number;
+  @IsString()
+  proteins?: string;
 
   @IsOptional()
-  @IsNumber()
-  fats?: number;
+  @IsString()
+  fats?: string;
 
   @IsOptional()
-  @IsNumber()
-  carbohydrates?: number;
+  @IsString()
+  carbohydrates?: string;
 }
