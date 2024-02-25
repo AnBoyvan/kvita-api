@@ -29,5 +29,5 @@ export class UpdateByUserDto {
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CartItemDto)
-  items?: CartItemDto[];
+  cart?: CartItemDto[];
 }
