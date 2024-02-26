@@ -6,13 +6,13 @@ import { Model, PipelineStage, Types } from 'mongoose';
 import { v4 as uuid } from 'uuid';
 
 import { CONST } from 'src/constants';
+import { TelegramService } from 'src/modules/telegram/telegram.service';
 import { Order, OrderDocument, Status } from 'src/schemas/order.schema';
 
 import { CreateOrderDto } from './dto/create-order.dto';
 import { FindOrdersDto } from './dto/find-orders.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { IFindOrdersFilter } from './orders.interfaces';
-import { TelegramService } from '../telegram/telegram.service';
 
 @Injectable()
 export class OrdersService {
@@ -37,7 +37,9 @@ export class OrdersService {
     return newOrder;
   }
 
-  async findOrders(dto: FindOrdersDto): Promise<OrderDocument[]> {
+  async findOrders(
+    dto: FindOrdersDto,
+  ): Promise<{ result: OrderDocument[]; count: number }> {
     const {
       product,
       status,
@@ -105,7 +107,10 @@ export class OrdersService {
     pipeline.push({ $skip: skip });
     pipeline.push({ $limit: Number(limit) });
 
-    return await this.orderModel.aggregate(pipeline);
+    const count = await this.orderModel.countDocuments(filter);
+    const result = await this.orderModel.aggregate(pipeline);
+
+    return { result, count };
   }
 
   async findCustomerOrders(id: Types.ObjectId): Promise<OrderDocument[]> {
