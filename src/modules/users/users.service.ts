@@ -50,7 +50,7 @@ export class UsersService {
 
   async findOne(search: string): Promise<UserDocument | null> {
     const query = {
-      $or: [{ name: search }, { email: search }, { phone: search }],
+      $or: [{ email: search }, { phone: search }],
     };
 
     return await this.userModel.findOne(query);
