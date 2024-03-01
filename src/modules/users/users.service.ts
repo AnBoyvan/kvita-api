@@ -48,6 +48,10 @@ export class UsersService {
     return safeUser;
   }
 
+  async findOne(search: string): Promise<UserDocument | null> {
+    return await this.userModel.findOne({ search });
+  }
+
   async findAll(
     dto: FindUsersDto,
   ): Promise<{ result: UserDocument[]; count: number }> {

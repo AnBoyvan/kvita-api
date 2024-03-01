@@ -71,19 +71,12 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  private async validate({
-    email,
-    phone,
-    password,
-  }: LoginDto): Promise<string> {
-    let user;
-    if (!email && !phone) {
+  private async validate({ login, password }: LoginDto): Promise<string> {
+    if (!login) {
       throw new BadRequestException(CONST.User.LOGIN_BAD_REQUEST_ERROR);
-    } else if (email) {
-      user = await this.usersService.findByEmail(email);
-    } else if (phone) {
-      user = await this.usersService.findByPhone(phone);
     }
+
+    const user = await this.usersService.findOne(login);
 
     if (!user) {
       throw new BadRequestException(CONST.User.LOGIN_BAD_REQUEST_ERROR);
