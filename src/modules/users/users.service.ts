@@ -49,7 +49,11 @@ export class UsersService {
   }
 
   async findOne(search: string): Promise<UserDocument | null> {
-    return await this.userModel.findOne({ search });
+    const query = {
+      $or: [{ name: search }, { email: search }, { phone: search }],
+    };
+
+    return await this.userModel.findOne(query);
   }
 
   async findAll(
