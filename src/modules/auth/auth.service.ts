@@ -117,6 +117,7 @@ export class AuthService {
       httpOnly: true,
       expires: expiresIn,
       secure: true,
+      sameSite: 'lax',
     });
   }
 
@@ -125,6 +126,7 @@ export class AuthService {
       httpOnly: true,
       expires: new Date(0),
       secure: true,
+      sameSite: 'lax',
     });
   }
 }
