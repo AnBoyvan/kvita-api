@@ -116,8 +116,6 @@ export class AuthService {
     res.cookie(this.REFRESH_TOKEN_NAME, refreshToken, {
       httpOnly: true,
       expires: expiresIn,
-      secure: false,
-      sameSite: false,
     });
   }
 
@@ -125,8 +123,6 @@ export class AuthService {
     res.cookie(this.REFRESH_TOKEN_NAME, '', {
       httpOnly: true,
       expires: new Date(0),
-      secure: false,
-      sameSite: false,
     });
   }
 }
