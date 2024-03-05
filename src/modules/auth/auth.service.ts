@@ -3,6 +3,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { compare } from 'bcryptjs';
 import { Response } from 'express';
@@ -22,6 +23,7 @@ export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly usersService: UsersService,
+    private readonly configService: ConfigService,
   ) {}
 
   async register(dto: RegisterDto): Promise<{
@@ -116,6 +118,9 @@ export class AuthService {
     res.cookie(this.REFRESH_TOKEN_NAME, refreshToken, {
       httpOnly: true,
       expires: expiresIn,
+      secure: true,
+      sameSite: 'lax',
+      domain: this.configService.get('DOMAIN'),
     });
   }
 
@@ -123,6 +128,9 @@ export class AuthService {
     res.cookie(this.REFRESH_TOKEN_NAME, '', {
       httpOnly: true,
       expires: new Date(0),
+      secure: true,
+      sameSite: 'lax',
+      domain: this.configService.get('DOMAIN'),
     });
   }
 }
