@@ -3,10 +3,8 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { compare } from 'bcryptjs';
-import { Response } from 'express';
 
 import { CONST } from 'src/constants';
 import { UserDocument } from 'src/schemas/user.schema';
@@ -23,7 +21,6 @@ export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly usersService: UsersService,
-    private readonly configService: ConfigService,
   ) {}
 
   async register(dto: RegisterDto): Promise<{
@@ -63,7 +60,7 @@ export class AuthService {
     const data = { id: _id.toString() };
 
     const accessToken = this.jwtService.sign(data, {
-      expiresIn: '1d',
+      expiresIn: '1h',
     });
 
     const refreshToken = this.jwtService.sign(data, {
@@ -110,25 +107,5 @@ export class AuthService {
     const tokens = this.issueTokens(result.id);
 
     return { user: safeUser, ...tokens };
-  }
-
-  addRefreshTokenToResponse(res: Response, refreshToken: string): void {
-    const expiresIn = new Date();
-    expiresIn.setDate(expiresIn.getDate() + this.EXPIRE_DAY_REFRESH_TOKEN);
-    res.cookie(this.REFRESH_TOKEN_NAME, refreshToken, {
-      // httpOnly: true,
-      expires: expiresIn,
-      // secure: true,
-      // sameSite: 'none',
-    });
-  }
-
-  removeRefreshTokenToResponse(res: Response): void {
-    res.cookie(this.REFRESH_TOKEN_NAME, '', {
-      // httpOnly: true,
-      expires: new Date(0),
-      // secure: true,
-      // sameSite: 'none',
-    });
   }
 }

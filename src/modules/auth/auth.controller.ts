@@ -3,18 +3,13 @@ import {
   Controller,
   HttpCode,
   Post,
-  Req,
-  Res,
-  UnauthorizedException,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { Request, Response } from 'express';
-
-import { CONST } from 'src/constants';
 
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { RegisterDto } from './dto/register.dto';
 
 @Controller('auth')
@@ -28,13 +23,8 @@ export class AuthController {
     }),
   )
   @Post('register')
-  async register(
-    @Body() dto: RegisterDto,
-    @Res({ passthrough: true }) res: Response,
-  ) {
-    const { refreshToken, ...data } = await this.authService.register(dto);
-    this.authService.addRefreshTokenToResponse(res, refreshToken);
-    return data;
+  async register(@Body() dto: RegisterDto) {
+    return this.authService.register(dto);
   }
 
   @UsePipes(
@@ -45,41 +35,13 @@ export class AuthController {
   )
   @Post('login')
   @HttpCode(200)
-  async login(
-    @Body() dto: LoginDto,
-    @Res({ passthrough: true }) res: Response,
-  ) {
-    const { refreshToken, ...data } = await this.authService.login(dto);
-    this.authService.addRefreshTokenToResponse(res, refreshToken);
-    return data;
-  }
-
-  @HttpCode(204)
-  @Post('logout')
-  async logout(@Res({ passthrough: true }) res: Response) {
-    this.authService.removeRefreshTokenToResponse(res);
-    return true;
+  async login(@Body() dto: LoginDto) {
+    return this.authService.login(dto);
   }
 
   @HttpCode(200)
   @Post('access-token')
-  async refreshToken(
-    @Req() req: Request,
-    @Res({ passthrough: true }) res: Response,
-  ) {
-    const requestRefreshToken =
-      req.cookies[this.authService.REFRESH_TOKEN_NAME];
-
-    if (!requestRefreshToken) {
-      this.authService.removeRefreshTokenToResponse(res);
-      throw new UnauthorizedException(CONST.User.REFRESH_TOKEN_MISSING_ERROR);
-    }
-
-    const { refreshToken, ...response } =
-      await this.authService.refresh(requestRefreshToken);
-
-    this.authService.addRefreshTokenToResponse(res, refreshToken);
-
-    return response;
+  async refreshToken(@Body() { refreshToken }: RefreshTokenDto) {
+    return this.authService.refresh(refreshToken);
   }
 }
