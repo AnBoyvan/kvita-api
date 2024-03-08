@@ -9,6 +9,7 @@ import { compare } from 'bcryptjs';
 import { CONST } from 'src/constants';
 import { UserDocument } from 'src/schemas/user.schema';
 
+import { ExistDto } from './dto/exist.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { UsersService } from '../users/users.service';
@@ -23,15 +24,20 @@ export class AuthService {
     private readonly usersService: UsersService,
   ) {}
 
+  async exist(dto: ExistDto): Promise<boolean> {
+    const user = await this.usersService.findByEmail(dto.email);
+    if (user) return true;
+    return false;
+  }
+
   async register(dto: RegisterDto): Promise<{
     user: UserDocument;
     accessToken: string;
     refreshToken: string;
   }> {
     const checkEmail = await this.usersService.findByEmail(dto.email);
-    const checkPhone = await this.usersService.findByPhone(dto.phone);
 
-    if (checkEmail || checkPhone) {
+    if (checkEmail) {
       throw new BadRequestException(CONST.User.ALREADY_REGISTERED_ERROR);
     }
 

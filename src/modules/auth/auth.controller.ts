@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 
 import { AuthService } from './auth.service';
+import { ExistDto } from './dto/exist.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -22,8 +23,18 @@ export class AuthController {
       whitelist: true,
     }),
   )
+  @Post('exist')
+  async register(@Body() dto: ExistDto) {
+    return this.authService.exist(dto);
+  }
+
+  @UsePipes(
+    new ValidationPipe({
+      whitelist: true,
+    }),
+  )
   @Post('register')
-  async register(@Body() dto: RegisterDto) {
+  async exist(@Body() dto: RegisterDto) {
     return this.authService.register(dto);
   }
 
