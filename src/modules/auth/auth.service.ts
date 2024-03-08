@@ -30,15 +30,25 @@ export class AuthService {
     return false;
   }
 
-  async signIn(dto: ExistDto): Promise<UserDocument | null> {
+  async signIn(dto: ExistDto): Promise<{
+    user: UserDocument;
+    accessToken: string;
+  }> {
     const user = await this.usersService.findByEmail(dto.email);
-    return user;
+
+    if (!user) {
+      throw new BadRequestException(CONST.User.LOGIN_BAD_REQUEST_ERROR);
+    }
+
+    const id = user?._id.toString();
+    const safeUser = await this.usersService.findById(id);
+    const accessToken = this.jwtService.sign(id);
+    return { user: safeUser, accessToken };
   }
 
   async register(dto: RegisterDto): Promise<{
     user: UserDocument;
     accessToken: string;
-    refreshToken: string;
   }> {
     const checkEmail = await this.usersService.findByEmail(dto.email);
 
@@ -47,38 +57,23 @@ export class AuthService {
     }
 
     const user = await this.usersService.create(dto);
-    const tokens = this.issueTokens(user._id.toString());
-    return { user, ...tokens };
+    const accessToken = this.jwtService.sign(user._id);
+    return { user, accessToken };
   }
 
   async login(dto: LoginDto): Promise<{
     user: UserDocument;
     accessToken: string;
-    refreshToken: string;
   }> {
     const id = await this.validate(dto);
 
     const safeUser = await this.usersService.findById(id);
-
-    const tokens = this.issueTokens(id);
-    return { user: safeUser, ...tokens };
+    const accessToken = this.jwtService.sign(id);
+    return { user: safeUser, accessToken };
   }
 
-  private issueTokens(_id: string): {
-    accessToken: string;
-    refreshToken: string;
-  } {
-    const data = { id: _id.toString() };
-
-    const accessToken = this.jwtService.sign(data, {
-      expiresIn: '1h',
-    });
-
-    const refreshToken = this.jwtService.sign(data, {
-      expiresIn: '7d',
-    });
-
-    return { accessToken, refreshToken };
+  async current(id: string): Promise<UserDocument> {
+    return await this.usersService.findById(id);
   }
 
   private async validate({ login, password }: LoginDto): Promise<string> {
@@ -100,23 +95,5 @@ export class AuthService {
     const id = user._id.toString();
 
     return id;
-  }
-
-  async refresh(refreshToken: string): Promise<{
-    user: UserDocument;
-    accessToken: string;
-    refreshToken: string;
-  }> {
-    const result = await this.jwtService.verifyAsync(refreshToken);
-
-    if (!result) {
-      throw new UnauthorizedException(CONST.User.REFRESH_TOKEN_INVALID_ERROR);
-    }
-
-    const safeUser = await this.usersService.findById(result.id);
-
-    const tokens = this.issueTokens(result.id);
-
-    return { user: safeUser, ...tokens };
   }
 }

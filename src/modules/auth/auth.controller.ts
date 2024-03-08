@@ -1,16 +1,21 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   Post,
+  UseGuards,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
+import { Types } from 'mongoose';
+
+import { CurrentUser } from 'src/decorators/current-user.decorator';
+import { JwtAuthGuard } from 'src/guards/jwt.guard';
 
 import { AuthService } from './auth.service';
 import { ExistDto } from './dto/exist.dto';
 import { LoginDto } from './dto/login.dto';
-import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { RegisterDto } from './dto/register.dto';
 
 @Controller('auth')
@@ -60,9 +65,9 @@ export class AuthController {
     return this.authService.login(dto);
   }
 
-  @HttpCode(200)
-  @Post('access-token')
-  async refreshToken(@Body() { refreshToken }: RefreshTokenDto) {
-    return this.authService.refresh(refreshToken);
+  @UseGuards(JwtAuthGuard)
+  @Get('current')
+  async current(@CurrentUser('_id') _id: Types.ObjectId) {
+    return this.authService.current(_id.toString());
   }
 }
