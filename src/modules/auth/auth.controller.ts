@@ -24,7 +24,7 @@ export class AuthController {
     }),
   )
   @Post('exist')
-  async register(@Body() dto: ExistDto) {
+  async exist(@Body() dto: ExistDto) {
     return this.authService.exist(dto);
   }
 
@@ -33,8 +33,18 @@ export class AuthController {
       whitelist: true,
     }),
   )
+  @Post('signin')
+  async signIn(@Body() dto: ExistDto) {
+    return this.authService.signIn(dto);
+  }
+
+  @UsePipes(
+    new ValidationPipe({
+      whitelist: true,
+    }),
+  )
   @Post('register')
-  async exist(@Body() dto: RegisterDto) {
+  async register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);
   }
 

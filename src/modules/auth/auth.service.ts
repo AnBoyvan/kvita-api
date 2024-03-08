@@ -30,6 +30,11 @@ export class AuthService {
     return false;
   }
 
+  async signIn(dto: ExistDto): Promise<UserDocument | null> {
+    const user = await this.usersService.findByEmail(dto.email);
+    return user;
+  }
+
   async register(dto: RegisterDto): Promise<{
     user: UserDocument;
     accessToken: string;
