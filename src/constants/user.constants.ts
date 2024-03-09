@@ -1,4 +1,5 @@
 export const userConstants = {
+  REGISTER_SUCCESS: 'Користувача зареєстровано',
   REFRESH_TOKEN_INVALID_ERROR: 'Токен недійсний',
   REFRESH_TOKEN_MISSING_ERROR: 'Необхідний токен',
   REFRESH_TOKEN_EXPIRED_ERROR: 'Термін дії токена закінчився',

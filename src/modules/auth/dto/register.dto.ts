@@ -12,7 +12,7 @@ export class RegisterDto {
 
   @IsOptional()
   @Matches(CONST.Regexp.PHONE, { message: CONST.User.DTO.phone })
-  @IsString({ message: CONST.User.DTO.phone })
+  @IsString()
   phone?: string;
 
   @Matches(CONST.Regexp.PASSWORD, { message: CONST.User.DTO.password })

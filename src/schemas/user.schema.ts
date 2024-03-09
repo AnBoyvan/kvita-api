@@ -53,7 +53,7 @@ export class User {
   })
   email: string;
 
-  @Prop({ default: '' })
+  @Prop({ unique: true, default: '' })
   phone?: string;
 
   @Prop({ required: true })

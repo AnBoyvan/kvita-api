@@ -47,8 +47,7 @@ export class AuthService {
   }
 
   async register(dto: RegisterDto): Promise<{
-    user: UserDocument;
-    accessToken: string;
+    message: string;
   }> {
     const checkEmail = await this.usersService.findByEmail(dto.email);
 
@@ -56,9 +55,16 @@ export class AuthService {
       throw new BadRequestException(CONST.User.ALREADY_REGISTERED_ERROR);
     }
 
-    const user = await this.usersService.create(dto);
-    const accessToken = this.jwtService.sign(user._id);
-    return { user, accessToken };
+    if (dto.phone) {
+      const checkPhone = await this.usersService.findOne(dto.phone);
+      if (checkPhone) {
+        throw new BadRequestException(CONST.User.ALREADY_REGISTERED_ERROR);
+      }
+    }
+
+    await this.usersService.create(dto);
+
+    return { message: CONST.User.REGISTER_SUCCESS };
   }
 
   async login(dto: LoginDto): Promise<{

@@ -183,10 +183,6 @@ export class UsersService {
     return await this.userModel.findOne({ email }).exec();
   }
 
-  async findByPhone(phone: string): Promise<UserDocument | null> {
-    return await this.userModel.findOne({ phone }).exec();
-  }
-
   async updateByUser(
     _id: Types.ObjectId,
     dto: UpdateByUserDto,
