@@ -1,5 +1,5 @@
 export interface IFindProductsFilter {
-  search?: { [key: string]: { $regex: string; $options: string } };
+  name?: { $regex: string; $options: string };
   category?: { $in: string[] };
   isActive?: boolean;
   isNewProduct?: boolean;

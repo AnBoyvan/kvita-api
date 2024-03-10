@@ -106,7 +106,7 @@ export class ProductsService {
     const pipeline: PipelineStage[] = [];
 
     if (search) {
-      filter.search = { name: { $regex: search, $options: 'i' } };
+      filter.name = { $regex: search, $options: 'i' };
     }
 
     if (category) {
