@@ -42,7 +42,12 @@ export class AuthService {
 
     const id = user?._id.toString();
     const safeUser = await this.usersService.findById(id);
-    const accessToken = this.jwtService.sign(id);
+    const accessToken = this.jwtService.sign(
+      { id },
+      {
+        expiresIn: '30d',
+      },
+    );
     return { user: safeUser, accessToken };
   }
 
@@ -74,7 +79,12 @@ export class AuthService {
     const id = await this.validate(dto);
 
     const safeUser = await this.usersService.findById(id);
-    const accessToken = this.jwtService.sign(id);
+    const accessToken = this.jwtService.sign(
+      { id },
+      {
+        expiresIn: '30d',
+      },
+    );
     return { user: safeUser, accessToken };
   }
 
