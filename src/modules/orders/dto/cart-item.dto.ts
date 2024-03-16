@@ -21,14 +21,13 @@ export class CartItemDto {
   price: number;
 
   @IsOptional()
-  @IsNumber({}, { message: CONST.User.DTO.discount })
-  @Min(0, { message: CONST.Order.DTO.discount })
-  discount?: number;
+  @IsNumber()
+  promo?: number;
 
   @IsOptional()
   @IsNumber()
-  @Min(0, { message: CONST.Order.DTO.price })
-  discountSum?: number;
+  @Min(0)
+  promoPrice?: number;
 
   @IsNumber()
   @Min(0, { message: CONST.Order.DTO.sum })

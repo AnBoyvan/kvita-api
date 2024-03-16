@@ -30,10 +30,10 @@ export class CartItem {
   price: number;
 
   @Prop({ default: 0 })
-  discount?: number;
+  promo?: number;
 
   @Prop({ default: 0 })
-  discountSum?: number;
+  promoPrice?: number;
 
   @Prop({ required: true, min: 0, default: 0 })
   sum: number;
