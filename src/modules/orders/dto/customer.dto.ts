@@ -11,7 +11,6 @@ export class CustomerDto {
   name: string;
 
   @IsOptional()
-  @Matches(CONST.Regexp.EMAIL, { message: CONST.User.DTO.email })
   @IsString()
   email?: string;
 
