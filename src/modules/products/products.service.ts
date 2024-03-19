@@ -80,9 +80,12 @@ export class ProductsService {
     return createdProduct;
   }
 
-  async findProducts(
-    dto: FindProductsDto,
-  ): Promise<{ result: ProductDocument[]; count: number }> {
+  async findProducts(dto: FindProductsDto): Promise<{
+    result: ProductDocument[];
+    count: number;
+    minProductPrice: number;
+    maxProductPrice: number;
+  }> {
     const {
       search,
       category,
@@ -128,8 +131,18 @@ export class ProductsService {
 
     if (priceMin !== undefined && priceMax !== undefined) {
       filter.$or = [
-        { price: { $gte: Number(priceMin), $lte: Number(priceMax) } },
-        { promoPrice: { $gte: Number(priceMin), $lte: Number(priceMax) } },
+        {
+          $and: [
+            { price: { $gte: Number(priceMin) } },
+            { price: { $lte: Number(priceMax) } },
+          ],
+        },
+        {
+          $and: [
+            { promoPrice: { $gte: Number(priceMin) } },
+            { promoPrice: { $lte: Number(priceMax) } },
+          ],
+        },
       ];
     }
 
@@ -181,7 +194,36 @@ export class ProductsService {
 
     const count = await this.productModel.countDocuments(filter);
     const result = await this.productModel.aggregate(pipeline);
-    return { result, count };
+    const prices = await this.productModel.aggregate([
+      { $match: filter },
+      {
+        $group: {
+          _id: null,
+          minPrice: {
+            $min: {
+              $cond: {
+                if: { $gt: ['$promoPrice', 0] },
+                then: '$promoPrice',
+                else: '$price',
+              },
+            },
+          },
+          maxPrice: {
+            $max: {
+              $cond: {
+                if: { $gt: ['$promoPrice', 0] },
+                then: '$promoPrice',
+                else: '$price',
+              },
+            },
+          },
+        },
+      },
+    ]);
+    const minProductPrice = prices.length > 0 ? prices[0].minPrice : 0;
+    const maxProductPrice = prices.length > 0 ? prices[0].maxPrice : 0;
+
+    return { result, count, minProductPrice, maxProductPrice };
   }
 
   async forMain(): Promise<{ [key: string]: ProductDocument[] }> {
