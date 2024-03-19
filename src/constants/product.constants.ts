@@ -8,7 +8,7 @@ export const productConstants = {
   FAVORITE_REMOVE_SUCCES: 'видалено з Улюблених',
   REMOVE_SUCCES: 'видалено',
   DTO: {
-    name: 'ID товару не вказано',
+    name: 'Назву товару не вказано',
     price: 'Ціну товару не вказано',
     category: 'Категорія не відповідає допустимим значенням',
   },
