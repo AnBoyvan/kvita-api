@@ -18,6 +18,7 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { FindProductsDto } from './dto/find-products.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { IFindProductsFilter } from './products.interfaces';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class ProductsService {
@@ -25,6 +26,7 @@ export class ProductsService {
     @InjectModel(Product.name)
     private readonly productModel: Model<ProductDocument>,
     private readonly cloudinaryService: CloudinaryService,
+    private readonly usersService: UsersService,
   ) {}
 
   async create(
@@ -361,38 +363,43 @@ export class ProductsService {
   }
 
   async updateFavorite(
-    id: string,
+    productId: string,
     userId: Types.ObjectId,
-  ): Promise<{ product: ProductDocument; message: string }> {
-    let message: string;
-    let updatedProduct: ProductDocument | null;
-    const product = await this.findById(id);
+  ): Promise<{
+    product: ProductDocument;
+    message: string;
+    userFavorites: string[];
+  }> {
+    const product = await this.findById(productId);
 
-    if (product.favorite && product.favorite.includes(userId.toString())) {
-      updatedProduct = await this.productModel.findByIdAndUpdate(
-        id,
-        {
-          $pull: { favorite: userId },
-        },
-        { new: true },
-      );
-      message = `${product.name} ${CONST.Product.FAVORITE_REMOVE_SUCCES}`;
-    } else {
-      updatedProduct = await this.productModel.findByIdAndUpdate(
-        id,
-        {
-          $addToSet: { favorite: userId },
-        },
-        { new: true },
-      );
-      message = `${product.name} ${CONST.Product.FAVORITE_ADD_SUCCES}`;
-    }
+    const isFavorite =
+      product.favorite && product.favorite.includes(userId.toString());
+    const updateOperation = isFavorite ? '$pull' : '$addToSet';
+
+    const updatedProduct = await this.productModel.findByIdAndUpdate(
+      productId,
+      {
+        [updateOperation]: { favorite: userId },
+      },
+      { new: true },
+    );
 
     if (!updatedProduct) {
       throw new NotFoundException(CONST.Product.NOT_FOUND_ERROR);
     }
 
-    return { product: updatedProduct, message };
+    const message = `${product.name} ${isFavorite ? CONST.Product.FAVORITE_REMOVE_SUCCES : CONST.Product.FAVORITE_ADD_SUCCES}`;
+
+    const userFavorites = await this.usersService.updateFavoriteProducts(
+      userId,
+      productId,
+      Boolean(
+        updatedProduct.favorite &&
+          updatedProduct.favorite.includes(userId.toString()),
+      ),
+    );
+
+    return { product: updatedProduct, message, userFavorites };
   }
 
   async remove(id: string): Promise<{ _id: string; message: string }> {

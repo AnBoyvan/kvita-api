@@ -68,6 +68,9 @@ export class User {
   @Prop({ type: () => [CartItem], default: [] })
   cart: CartItem[];
 
+  @Prop({ type: [String], default: [] })
+  favorite?: string[];
+
   @Prop({ default: false })
   verify: boolean;
 

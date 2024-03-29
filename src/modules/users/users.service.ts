@@ -200,6 +200,34 @@ export class UsersService {
     return user;
   }
 
+  async updateFavoriteProducts(
+    userId: Types.ObjectId,
+    productId: string,
+    addToFavorites: boolean,
+  ): Promise<string[]> {
+    const user = await this.userModel.findById(userId);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (!user.favorite) {
+      user.favorite = [];
+    }
+
+    const index = user.favorite.indexOf(productId);
+
+    if (addToFavorites && index === -1) {
+      user.favorite.push(productId);
+    } else if (!addToFavorites && index !== -1) {
+      user.favorite.splice(index, 1);
+    }
+
+    await user.save();
+
+    return user.favorite;
+  }
+
   async changePasswordRequest(email: string): Promise<{ message: string }> {
     const user = await this.findByEmail(email);
 
