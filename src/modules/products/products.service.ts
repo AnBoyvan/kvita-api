@@ -101,12 +101,11 @@ export class ProductsService {
       updatedStart,
       updatedEnd,
       page = 1,
-      limit = 20,
+      limit,
       sortField = 'createdAt',
       sortOrder = 'desc',
     } = dto;
 
-    const skip = (Number(page) - 1) * Number(limit);
     const filter: IFindProductsFilter = {};
     const pipeline: PipelineStage[] = [];
 
@@ -191,8 +190,12 @@ export class ProductsService {
     pipeline.push({
       $match: filter,
     });
-    pipeline.push({ $skip: skip });
-    pipeline.push({ $limit: Number(limit) });
+
+    if (Number(limit) > 0) {
+      const skip = (Number(page) - 1) * Number(limit);
+      pipeline.push({ $skip: skip });
+      pipeline.push({ $limit: Number(limit) });
+    }
 
     const count = await this.productModel.countDocuments(filter);
     const result = await this.productModel.aggregate(pipeline);

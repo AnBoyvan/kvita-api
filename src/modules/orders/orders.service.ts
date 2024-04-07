@@ -53,10 +53,9 @@ export class OrdersService {
       sortField = 'createdAt',
       sortOrder = 'desc',
       page = 1,
-      limit = 100,
+      limit,
     } = dto;
 
-    const skip = (Number(page) - 1) * Number(limit);
     const filter: IFindOrdersFilter = {};
     const pipeline: PipelineStage[] = [];
 
@@ -104,8 +103,12 @@ export class OrdersService {
     pipeline.push({
       $match: filter,
     });
-    pipeline.push({ $skip: skip });
-    pipeline.push({ $limit: Number(limit) });
+
+    if (Number(limit) > 0) {
+      const skip = (Number(page) - 1) * Number(limit);
+      pipeline.push({ $skip: skip });
+      pipeline.push({ $limit: Number(limit) });
+    }
 
     const count = await this.orderModel.countDocuments(filter);
     const result = await this.orderModel.aggregate(pipeline);

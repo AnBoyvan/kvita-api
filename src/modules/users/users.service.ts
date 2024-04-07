@@ -72,10 +72,9 @@ export class UsersService {
       sortField = 'createdAt',
       sortOrder = 'desc',
       page = 1,
-      limit = 500,
+      limit,
     } = dto;
 
-    const skip = (Number(page) - 1) * Number(limit);
     const filter: IFindUsersFilter = {};
     const pipeline: PipelineStage[] = [];
 
@@ -150,8 +149,13 @@ export class UsersService {
     pipeline.push({
       $match: filter,
     });
-    pipeline.push({ $skip: skip });
-    pipeline.push({ $limit: Number(limit) });
+
+    if (Number(limit) > 0) {
+      const skip = (Number(page) - 1) * Number(limit);
+      pipeline.push({ $skip: skip });
+      pipeline.push({ $limit: Number(limit) });
+    }
+
     pipeline.push({
       $project: {
         password: 0,
