@@ -1,4 +1,4 @@
-import { IsEnum, IsString, IsOptional } from 'class-validator';
+import { IsEnum, IsOptional, IsString } from 'class-validator';
 
 import { CONST } from 'src/constants';
 import { Category } from 'src/schemas/product.schema';
@@ -40,4 +40,12 @@ export class CreateProductDto {
   @IsOptional()
   @IsString()
   carbohydrates?: string;
+
+  @IsOptional()
+  @IsString()
+  isActive?: string;
+
+  @IsOptional()
+  @IsString()
+  isNewProduct?: string;
 }
