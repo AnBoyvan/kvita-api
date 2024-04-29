@@ -6,19 +6,18 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, PipelineStage } from 'mongoose';
-import { Types } from 'mongoose';
+import { Model, PipelineStage, Types } from 'mongoose';
 
 import { CONST } from 'src/constants';
 import { CloudinaryService } from 'src/modules/cloudinary/cloudinary.service';
 import { Product, ProductDocument } from 'src/schemas/product.schema';
 import { removeTmpFiles } from 'src/utils/removeTmpFiles';
 
+import { UsersService } from '../users/users.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { FindProductsDto } from './dto/find-products.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { IFindProductsFilter } from './products.interfaces';
-import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class ProductsService {
@@ -39,7 +38,9 @@ export class ProductsService {
 
     const productImage: string = files.image[0].path;
     const tmpGallery: string[] = files.gallery
-      ? files.gallery?.map(file => file.path)
+      ? files.gallery
+          ?.map(file => file.path)
+          .filter(path => path !== productImage)
       : [];
 
     const tmpFiles: string[] = [files.image[0].path, ...tmpGallery];
