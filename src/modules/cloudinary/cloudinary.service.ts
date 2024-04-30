@@ -6,16 +6,12 @@ import { CONST } from 'src/constants';
 
 @Injectable()
 export class CloudinaryService {
-  async addProductImg(
-    path: string,
-    id: string,
-    category: string,
-  ): Promise<string> {
+  async addProductImg(path: string, id: string): Promise<string> {
     const fileName = uuid();
 
     try {
       const data = await cloudinary.uploader.upload(path, {
-        folder: `products/${category}/${id}`,
+        folder: `products/${id}`,
         public_id: fileName,
         overwrite: true,
         format: 'webp',
@@ -37,29 +33,18 @@ export class CloudinaryService {
     }
   }
 
-  async removeProductImg(
-    fileName: string,
-    productId: string,
-    category: string,
-  ): Promise<void> {
+  async removeProductImg(fileName: string, productId: string): Promise<void> {
     try {
-      await cloudinary.uploader.destroy(
-        `products/${category}/${productId}/${fileName}`,
-      );
+      await cloudinary.uploader.destroy(`products/${productId}/${fileName}`);
     } catch (error) {
       throw error;
     }
   }
 
-  async removeProductFolder(
-    productId: string,
-    category: string,
-  ): Promise<void> {
+  async removeProductFolder(productId: string): Promise<void> {
     try {
-      await cloudinary.api.delete_resources_by_prefix(
-        `products/${category}/${productId}`,
-      );
-      await cloudinary.api.delete_folder(`products/${category}/${productId}`);
+      await cloudinary.api.delete_resources_by_prefix(`products/${productId}`);
+      await cloudinary.api.delete_folder(`products/${productId}`);
     } catch (error) {
       throw error;
     }

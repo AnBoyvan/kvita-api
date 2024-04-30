@@ -13,11 +13,11 @@ import { CloudinaryService } from 'src/modules/cloudinary/cloudinary.service';
 import { Product, ProductDocument } from 'src/schemas/product.schema';
 import { removeTmpFiles } from 'src/utils/removeTmpFiles';
 
-import { UsersService } from '../users/users.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { FindProductsDto } from './dto/find-products.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { IFindProductsFilter } from './products.interfaces';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class ProductsService {
@@ -36,51 +36,56 @@ export class ProductsService {
       throw new BadRequestException(CONST.Product.IMAGE_MISSING_ERROR);
     }
 
-    const productImage: string = files.image[0].path;
-    const tmpGallery: string[] = files.gallery
-      ? files.gallery
-          ?.map(file => file.path)
-          .filter(path => path !== productImage)
-      : [];
-
-    const tmpFiles: string[] = [files.image[0].path, ...tmpGallery];
-
     const newProduct = await this.productModel.create(dto);
 
-    const imageGallery = [];
-
-    const imageURL = await this.cloudinaryService.addProductImg(
-      productImage,
-      newProduct._id.toString(),
-      newProduct.category,
-    );
-
-    imageGallery.push(imageURL);
-
-    for (const img of tmpGallery) {
-      const imgURL = await this.cloudinaryService.addProductImg(
-        img,
-        newProduct._id.toString(),
-        newProduct.category,
-      );
-      imageGallery.push(imgURL);
-    }
-
-    const createdProduct = await this.productModel.findByIdAndUpdate(
-      newProduct._id,
-      { imageURL, imageGallery },
-      {
-        new: true,
-      },
-    );
-
-    removeTmpFiles(tmpFiles);
-
-    if (!createdProduct) {
+    if (!newProduct) {
       throw new InternalServerErrorException();
     }
 
-    return createdProduct;
+    const { mainImage, images } = await this.addImages(
+      newProduct._id.toString(),
+      files.image,
+      files.gallery,
+    );
+
+    if (mainImage) newProduct.imageURL = mainImage;
+
+    const existedGallery = newProduct.imageGallery
+      ? newProduct.imageGallery
+      : [];
+
+    newProduct.imageGallery = [...existedGallery, ...images];
+
+    await newProduct.save();
+
+    return newProduct;
+    // const productImage: string = files.image[0].path;
+    // const tmpGallery: string[] = files.gallery
+    //   ? files.gallery
+    //       ?.map(file => file.path)
+    //       .filter(path => path !== productImage)
+    //   : [];
+
+    // const tmpFiles: string[] = [files.image[0].path, ...tmpGallery];
+
+    // const imageGallery = [];
+
+    // const imageURL = await this.cloudinaryService.addProductImg(
+    //   productImage,
+    //   newProduct._id.toString(),
+    // );
+
+    // imageGallery.push(imageURL);
+
+    // for (const img of tmpGallery) {
+    //   const imgURL = await this.cloudinaryService.addProductImg(
+    //     img,
+    //     newProduct._id.toString(),
+    //   );
+    //   imageGallery.push(imgURL);
+    // }
+
+    // removeTmpFiles(tmpFiles);
   }
 
   async findProducts(dto: FindProductsDto): Promise<{
@@ -277,6 +282,20 @@ export class ProductsService {
     id: string,
     dto: UpdateProductDto,
   ): Promise<ProductDocument> {
+    const product = await this.productModel.findById(id);
+
+    if (!product) {
+      throw new NotFoundException(CONST.Product.NOT_FOUND_ERROR);
+    }
+
+    const removeImages = product.imageGallery?.filter(
+      img => !dto.imageGallery?.includes(img) && img !== product.imageURL,
+    );
+
+    if (removeImages) {
+      await this.removeImages(product._id.toString(), removeImages);
+    }
+
     const updatedProduct = await this.productModel.findByIdAndUpdate(id, dto, {
       new: true,
     });
@@ -285,49 +304,105 @@ export class ProductsService {
       throw new NotFoundException(CONST.Product.NOT_FOUND_ERROR);
     }
 
-    const newImages = [];
-    const tmpFiles: string[] = [];
-    const galleryPaths: string[] = files.gallery
-      ? files.gallery.map(file => file.path)
-      : [];
-    const filteredGallery: string[] = galleryPaths.filter(
-      path => !files?.image || path !== files?.image[0].path,
+    const { mainImage, images } = await this.addImages(
+      product._id.toString(),
+      files.image,
+      files.gallery,
     );
-    if (files.image && files.image[0]) {
-      tmpFiles.push(files.image[0].path);
-    }
-    tmpFiles.push(...filteredGallery);
 
-    if (files.image) {
-      const newImageURL = await this.cloudinaryService.addProductImg(
-        files.image[0].path,
-        updatedProduct._id.toString(),
-        updatedProduct.category,
-      );
-      newImages.push(newImageURL);
-      updatedProduct.imageURL = newImageURL;
-    }
+    if (mainImage) updatedProduct.imageURL = mainImage;
 
-    for (const img of filteredGallery) {
-      const imgURL = await this.cloudinaryService.addProductImg(
-        img,
-        updatedProduct._id.toString(),
-        updatedProduct.category,
-      );
-      newImages.push(imgURL);
-    }
+    const existedGallery = updatedProduct.imageGallery
+      ? updatedProduct.imageGallery
+      : [];
 
-    if (updatedProduct.imageGallery === undefined) {
-      updatedProduct.imageGallery = [];
-    }
-    updatedProduct.imageGallery = [
-      ...updatedProduct.imageGallery,
-      ...newImages,
-    ];
+    updatedProduct.imageGallery = [...existedGallery, ...images];
+
     await updatedProduct.save();
 
-    removeTmpFiles(tmpFiles);
     return updatedProduct;
+    // const newImages = [];
+
+    // const tmpFiles: string[] = [];
+
+    // const galleryPaths: string[] = files.gallery
+    //   ? files.gallery.map(file => file.path)
+    //   : [];
+
+    // const filteredGallery: string[] = galleryPaths.filter(
+    //   path => !files?.image || path !== files?.image[0].path,
+    // );
+    // if (files.image && files.image[0]) {
+    //   tmpFiles.push(files.image[0].path);
+    // }
+    // tmpFiles.push(...filteredGallery);
+
+    // if (files.image) {
+    //   const newImageURL = await this.cloudinaryService.addProductImg(
+    //     files.image[0].path,
+    //     updatedProduct._id.toString(),
+    //   );
+    //   newImages.push(newImageURL);
+    //   updatedProduct.imageURL = newImageURL;
+    // }
+
+    // for (const img of filteredGallery) {
+    //   const imgURL = await this.cloudinaryService.addProductImg(
+    //     img,
+    //     updatedProduct._id.toString(),
+    //   );
+    //   newImages.push(imgURL);
+    // }
+
+    // if (updatedProduct.imageGallery === undefined) {
+    //   updatedProduct.imageGallery = [];
+    // }
+    // updatedProduct.imageGallery = [
+    //   ...updatedProduct.imageGallery,
+    //   ...newImages,
+    // ];
+    // removeTmpFiles(tmpFiles);
+  }
+
+  async addImages(
+    id: string,
+    image?: Express.Multer.File[],
+    gallery?: Express.Multer.File[],
+  ): Promise<{ mainImage: string | undefined; images: string[] }> {
+    const images = [];
+    let mainImage = undefined;
+
+    const productImage: string | undefined = image && image[0].path;
+
+    const tmpGallery: string[] = gallery
+      ? gallery?.map(file => file.path).filter(path => path !== productImage)
+      : [];
+
+    const tmpFiles: string[] = [...tmpGallery];
+
+    if (productImage) {
+      tmpFiles.push(productImage);
+
+      mainImage = await this.cloudinaryService.addProductImg(productImage, id);
+
+      images.push(mainImage);
+    }
+
+    for (const img of tmpGallery) {
+      const imgURL = await this.cloudinaryService.addProductImg(img, id);
+      images.push(imgURL);
+    }
+
+    removeTmpFiles(tmpFiles);
+
+    return { mainImage, images };
+  }
+
+  async removeImages(id: string, images: string[]): Promise<void> {
+    for (const img of images) {
+      const fileName = img.split('/').pop()?.split('.')[0];
+      if (fileName) await this.cloudinaryService.removeProductImg(fileName, id);
+    }
   }
 
   async removeGalleryImage(
@@ -350,11 +425,7 @@ export class ProductsService {
       throw new InternalServerErrorException();
     }
 
-    await this.cloudinaryService.removeProductImg(
-      fileName,
-      id,
-      product.category,
-    );
+    await this.cloudinaryService.removeProductImg(fileName, id);
 
     const imgIndex = product.imageGallery.indexOf(image);
     if (imgIndex === -1) {
@@ -409,7 +480,7 @@ export class ProductsService {
   async remove(id: string): Promise<{ _id: string; message: string }> {
     const product = await this.findById(id);
 
-    await this.cloudinaryService.removeProductFolder(id, product.category);
+    await this.cloudinaryService.removeProductFolder(id);
 
     await this.productModel.findByIdAndDelete(id);
 
