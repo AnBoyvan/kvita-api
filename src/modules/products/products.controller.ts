@@ -24,7 +24,6 @@ import { IdValidationPipe } from 'src/pipes/id-validation.pipe';
 
 import { CreateProductDto } from './dto/create-product.dto';
 import { FindProductsDto } from './dto/find-products.dto';
-import { RemoveGalleryImageDto } from './dto/remove-gallery-image.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductsService } from './products.service';
 
@@ -104,20 +103,6 @@ export class ProductsController {
     dto: UpdateProductDto,
   ) {
     return await this.productsService.update(files, id, dto);
-  }
-
-  @UsePipes(
-    new ValidationPipe({
-      whitelist: true,
-    }),
-  )
-  @UseGuards(JwtAuthGuard, ManagerAccessGuard)
-  @Patch(':id/delete')
-  async removeGalleryImage(
-    @Param('id', IdValidationPipe) id: string,
-    @Body() { image }: RemoveGalleryImageDto,
-  ) {
-    return await this.productsService.removeGalleryImage(id, image);
   }
 
   @UseGuards(JwtAuthGuard)

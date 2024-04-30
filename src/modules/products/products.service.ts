@@ -1,6 +1,5 @@
 import {
   BadRequestException,
-  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -59,33 +58,6 @@ export class ProductsService {
     await newProduct.save();
 
     return newProduct;
-    // const productImage: string = files.image[0].path;
-    // const tmpGallery: string[] = files.gallery
-    //   ? files.gallery
-    //       ?.map(file => file.path)
-    //       .filter(path => path !== productImage)
-    //   : [];
-
-    // const tmpFiles: string[] = [files.image[0].path, ...tmpGallery];
-
-    // const imageGallery = [];
-
-    // const imageURL = await this.cloudinaryService.addProductImg(
-    //   productImage,
-    //   newProduct._id.toString(),
-    // );
-
-    // imageGallery.push(imageURL);
-
-    // for (const img of tmpGallery) {
-    //   const imgURL = await this.cloudinaryService.addProductImg(
-    //     img,
-    //     newProduct._id.toString(),
-    //   );
-    //   imageGallery.push(imgURL);
-    // }
-
-    // removeTmpFiles(tmpFiles);
   }
 
   async findProducts(dto: FindProductsDto): Promise<{
@@ -321,47 +293,6 @@ export class ProductsService {
     await updatedProduct.save();
 
     return updatedProduct;
-    // const newImages = [];
-
-    // const tmpFiles: string[] = [];
-
-    // const galleryPaths: string[] = files.gallery
-    //   ? files.gallery.map(file => file.path)
-    //   : [];
-
-    // const filteredGallery: string[] = galleryPaths.filter(
-    //   path => !files?.image || path !== files?.image[0].path,
-    // );
-    // if (files.image && files.image[0]) {
-    //   tmpFiles.push(files.image[0].path);
-    // }
-    // tmpFiles.push(...filteredGallery);
-
-    // if (files.image) {
-    //   const newImageURL = await this.cloudinaryService.addProductImg(
-    //     files.image[0].path,
-    //     updatedProduct._id.toString(),
-    //   );
-    //   newImages.push(newImageURL);
-    //   updatedProduct.imageURL = newImageURL;
-    // }
-
-    // for (const img of filteredGallery) {
-    //   const imgURL = await this.cloudinaryService.addProductImg(
-    //     img,
-    //     updatedProduct._id.toString(),
-    //   );
-    //   newImages.push(imgURL);
-    // }
-
-    // if (updatedProduct.imageGallery === undefined) {
-    //   updatedProduct.imageGallery = [];
-    // }
-    // updatedProduct.imageGallery = [
-    //   ...updatedProduct.imageGallery,
-    //   ...newImages,
-    // ];
-    // removeTmpFiles(tmpFiles);
   }
 
   async addImages(
@@ -403,38 +334,6 @@ export class ProductsService {
       const fileName = img.split('/').pop()?.split('.')[0];
       if (fileName) await this.cloudinaryService.removeProductImg(fileName, id);
     }
-  }
-
-  async removeGalleryImage(
-    id: string,
-    image: string,
-  ): Promise<{ image: string; message: string }> {
-    const product = await this.findById(id);
-
-    if (image === product.imageURL) {
-      throw new ForbiddenException(CONST.Product.MAIN_IMAGE_REMOVE_ERROR);
-    }
-
-    if (!image || !product.imageGallery?.includes(image)) {
-      throw new NotFoundException(CONST.Product.IMAGE_NOT_FOUND_ERROR);
-    }
-
-    const fileName = image.split('/').pop()?.split('.')[0];
-
-    if (!fileName || !product.imageURL) {
-      throw new InternalServerErrorException();
-    }
-
-    await this.cloudinaryService.removeProductImg(fileName, id);
-
-    const imgIndex = product.imageGallery.indexOf(image);
-    if (imgIndex === -1) {
-      throw new NotFoundException(CONST.Product.IMAGE_NOT_FOUND_ERROR);
-    }
-    product.imageGallery.splice(imgIndex, 1);
-    await product.save();
-
-    return { image, message: CONST.Product.IMAGE_REMOVE_SUCCESS };
   }
 
   async updateFavorite(

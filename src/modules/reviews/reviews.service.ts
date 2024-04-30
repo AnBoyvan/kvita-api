@@ -4,7 +4,6 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { format } from 'date-fns';
 import { Model, Types } from 'mongoose';
 
 import { CONST } from 'src/constants';
@@ -33,13 +32,10 @@ export class ReviewsService {
 
     await this.productsService.findById(dto.productId);
 
-    const date = format(new Date(), 'dd-MM-yyyy');
-
     return await this.reviewModel.create({
       ...dto,
       ownerId,
       ownerName,
-      date,
     });
   }
 
