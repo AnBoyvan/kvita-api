@@ -46,7 +46,9 @@ export class PicturesService {
     return newPicture;
   }
 
-  async findPictures(dto: FindPicturesDto): Promise<PictureDocument[]> {
+  async findPictures(
+    dto: FindPicturesDto,
+  ): Promise<{ result: PictureDocument[]; count: number }> {
     const { tags, page = 1, limit = 20 } = dto;
     const skip = (Number(page) - 1) * Number(limit);
     const filter: IFindPicturesFilter = {};
@@ -56,11 +58,14 @@ export class PicturesService {
       filter.tags = { $in: tagArray };
     }
 
-    return await this.pictureModel
+    const count = await this.pictureModel.countDocuments(filter);
+    const result = await this.pictureModel
       .find(filter)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(Number(limit));
+
+    return { result, count };
   }
 
   async findByID(id: string): Promise<PictureDocument> {
