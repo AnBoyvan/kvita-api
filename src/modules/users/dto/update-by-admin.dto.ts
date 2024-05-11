@@ -1,4 +1,4 @@
-import { IsEnum, IsNumber, IsOptional, IsPositive } from 'class-validator';
+import { IsEnum, IsNumber, IsOptional, Min } from 'class-validator';
 
 import { CONST } from 'src/constants';
 import { Role } from 'src/schemas/user.schema';
@@ -10,6 +10,6 @@ export class UpdateByAdminDto {
 
   @IsOptional()
   @IsNumber({}, { message: CONST.User.DTO.discount })
-  @IsPositive({ message: CONST.User.DTO.discount })
+  @Min(0, { message: CONST.User.DTO.discount })
   discount?: number;
 }
