@@ -37,9 +37,12 @@ export class OrdersService {
     return newOrder;
   }
 
-  async findOrders(
-    dto: FindOrdersDto,
-  ): Promise<{ result: OrderDocument[]; count: number }> {
+  async findOrders(dto: FindOrdersDto): Promise<{
+    result: OrderDocument[];
+    count: number;
+    minTotal: number;
+    maxTotal: number;
+  }> {
     const {
       product,
       status,
@@ -112,8 +115,21 @@ export class OrdersService {
 
     const count = await this.orderModel.countDocuments(filter);
     const result = await this.orderModel.aggregate(pipeline);
+    const totalRange = await this.orderModel.aggregate([
+      { $match: filter },
+      {
+        $group: {
+          _id: null,
+          minTotal: { $min: '$total' },
+          maxTotal: { $max: '$total' },
+        },
+      },
+    ]);
 
-    return { result, count };
+    const minTotal = totalRange.length > 0 ? totalRange[0].minTotal : 0;
+    const maxTotal = totalRange.length > 0 ? totalRange[0].maxTotal : 0;
+
+    return { result, count, minTotal, maxTotal };
   }
 
   async findCustomerOrders(id: Types.ObjectId): Promise<OrderDocument[]> {
