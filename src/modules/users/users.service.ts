@@ -3,18 +3,21 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { genSalt, hash } from 'bcryptjs';
+import { compare, genSalt, hash } from 'bcryptjs';
 import { Model, ModifyResult, PipelineStage, Types } from 'mongoose';
 import { v4 as uuid } from 'uuid';
 
 import { CONST } from 'src/constants';
 import { Role, User, UserDocument } from 'src/schemas/user.schema';
 
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { FindUsersDto } from './dto/find-users.dto';
 import { UpdateByAdminDto } from './dto/update-by-admin.dto';
 import { UpdateByUserDto } from './dto/update-by-user.dto';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 import { IFindUsersFilter } from './user.interfaces';
 import { RegisterDto } from '../auth/dto/register.dto';
 import { EmailService } from '../email/email.service';
@@ -204,6 +207,33 @@ export class UsersService {
     return user;
   }
 
+  async updatePassword(
+    _id: Types.ObjectId,
+    dto: UpdatePasswordDto,
+  ): Promise<{ message: string }> {
+    const user = await this.userModel.findById(_id);
+
+    if (!user) {
+      throw new NotFoundException(CONST.User.NOT_FOUND_ERROR);
+    }
+
+    const isCorrectPassword = await compare(dto.password, user.password);
+    if (!isCorrectPassword) {
+      throw new UnauthorizedException(CONST.User.PASSWORD_BAD_REQUEST_ERROR);
+    }
+
+    const salt = await genSalt(10);
+    const passwordHash = await hash(dto.newPassword, salt);
+
+    user.password = passwordHash;
+
+    await user.save();
+
+    return {
+      message: CONST.User.PASSWORD_CHANGE_SUCCESS,
+    };
+  }
+
   async updateFavoriteProducts(
     userId: Types.ObjectId,
     productId: string,
@@ -315,5 +345,25 @@ export class UsersService {
       throw new NotFoundException(CONST.User.NOT_FOUND_ERROR);
     }
     return { user, message: CONST.User.REMOVE_SUCCESS };
+  }
+
+  async removeOwn(
+    id: Types.ObjectId,
+    dto: ChangePasswordDto,
+  ): Promise<{ message: string }> {
+    const user = await this.userModel.findById(id);
+
+    if (!user) {
+      throw new NotFoundException(CONST.User.NOT_FOUND_ERROR);
+    }
+
+    const isCorrectPassword = await compare(dto.password, user.password);
+    if (!isCorrectPassword) {
+      throw new UnauthorizedException(CONST.User.PASSWORD_BAD_REQUEST_ERROR);
+    }
+
+    await this.userModel.findByIdAndDelete(id);
+
+    return { message: CONST.User.REMOVE_SUCCESS };
   }
 }

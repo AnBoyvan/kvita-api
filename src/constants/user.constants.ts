@@ -6,6 +6,7 @@ export const userConstants = {
   ALREADY_REGISTERED_ERROR:
     'Користувач з вказаною поштою чи номером телефону вже зареєстрований',
   LOGIN_BAD_REQUEST_ERROR: 'Невірний логін або пароль',
+  PASSWORD_BAD_REQUEST_ERROR: 'Невірний пароль',
   NOT_FOUND_ERROR: 'Користувача не знайдено',
   PASSWORD_CHANGE_REQUEST_MESSAGE:
     'Лист з із інструкцією для зміни пароля відправлено',
