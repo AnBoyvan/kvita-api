@@ -50,7 +50,7 @@ export class UsersController {
     }),
   )
   @UseGuards(JwtAuthGuard)
-  @Patch()
+  @Patch('update/own')
   async updateByUser(
     @Body() dto: UpdateByUserDto,
     @CurrentUser('_id') _id: Types.ObjectId,
@@ -65,12 +65,27 @@ export class UsersController {
     }),
   )
   @UseGuards(JwtAuthGuard)
-  @Patch('update-password')
+  @Patch('update/password')
   async updatePassword(
     @Body() dto: UpdatePasswordDto,
     @CurrentUser('_id') _id: Types.ObjectId,
   ) {
     return this.usersService.updatePassword(_id, dto);
+  }
+
+  @UsePipes(
+    new ValidationPipe({
+      forbidNonWhitelisted: true,
+      whitelist: true,
+    }),
+  )
+  @UseGuards(JwtAuthGuard)
+  @Patch('update/remove')
+  async removeOwn(
+    @Body() dto: UpdatePasswordDto,
+    @CurrentUser('_id') _id: Types.ObjectId,
+  ) {
+    return this.usersService.removeOwn(_id, dto);
   }
 
   @UsePipes(
@@ -105,28 +120,13 @@ export class UsersController {
     }),
   )
   @UseGuards(JwtAuthGuard, ManagerAccessGuard)
-  @Patch(':id')
+  @Patch('update/admin/:id')
   async updateByAdmin(
     @Param('id', IdValidationPipe) id: Types.ObjectId,
     @Body() dto: UpdateByAdminDto,
     @CurrentUser('role') adminRole: Role,
   ) {
     return this.usersService.updateByAdmin(adminRole, id, dto);
-  }
-
-  @UsePipes(
-    new ValidationPipe({
-      forbidNonWhitelisted: true,
-      whitelist: true,
-    }),
-  )
-  @UseGuards(JwtAuthGuard)
-  @Patch('own-remove')
-  async removeOwn(
-    @Body() dto: UpdatePasswordDto,
-    @CurrentUser('_id') _id: Types.ObjectId,
-  ) {
-    return this.usersService.removeOwn(_id, dto);
   }
 
   @UseGuards(JwtAuthGuard, SuperuserAccessGuard)
