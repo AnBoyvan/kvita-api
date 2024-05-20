@@ -82,7 +82,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Patch('update/remove')
   async removeOwn(
-    @Body() dto: UpdatePasswordDto,
+    @Body() dto: ChangePasswordDto,
     @CurrentUser('_id') _id: Types.ObjectId,
   ) {
     return this.usersService.removeOwn(_id, dto);
