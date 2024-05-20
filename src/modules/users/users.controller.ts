@@ -121,7 +121,7 @@ export class UsersController {
     }),
   )
   @UseGuards(JwtAuthGuard)
-  @Delete('own-remove')
+  @Patch('own-remove')
   async removeOwn(
     @Body() dto: UpdatePasswordDto,
     @CurrentUser('_id') _id: Types.ObjectId,
