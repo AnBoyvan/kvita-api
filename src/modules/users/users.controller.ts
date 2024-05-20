@@ -114,12 +114,6 @@ export class UsersController {
     return this.usersService.updateByAdmin(adminRole, id, dto);
   }
 
-  @UseGuards(JwtAuthGuard, SuperuserAccessGuard)
-  @Delete(':id')
-  async remove(@Param('id', IdValidationPipe) id: string) {
-    return this.usersService.remove(id);
-  }
-
   @UsePipes(
     new ValidationPipe({
       forbidNonWhitelisted: true,
@@ -127,11 +121,17 @@ export class UsersController {
     }),
   )
   @UseGuards(JwtAuthGuard)
-  @Delete('remove')
+  @Delete('own-remove')
   async removeOwn(
     @Body() dto: UpdatePasswordDto,
     @CurrentUser('_id') _id: Types.ObjectId,
   ) {
     return this.usersService.removeOwn(_id, dto);
+  }
+
+  @UseGuards(JwtAuthGuard, SuperuserAccessGuard)
+  @Delete(':id')
+  async remove(@Param('id', IdValidationPipe) id: string) {
+    return this.usersService.remove(id);
   }
 }
