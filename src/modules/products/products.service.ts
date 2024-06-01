@@ -284,10 +284,7 @@ export class ProductsService {
       files.gallery,
     );
 
-    if (mainImage) {
-      updatedProduct.imageURL = mainImage;
-      await this.ordersService.updateProductImage(id, mainImage);
-    }
+    if (mainImage) updatedProduct.imageURL = mainImage;
 
     const existedGallery = updatedProduct.imageGallery
       ? updatedProduct.imageGallery
@@ -296,6 +293,9 @@ export class ProductsService {
     updatedProduct.imageGallery = [...existedGallery, ...images];
 
     await updatedProduct.save();
+
+    if (updatedProduct.imageURL)
+      await this.ordersService.updateProductImage(id, updatedProduct.imageURL);
 
     return updatedProduct;
   }
