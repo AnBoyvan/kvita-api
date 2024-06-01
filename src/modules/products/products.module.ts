@@ -8,6 +8,7 @@ import { Product, ProductSchema } from 'src/schemas/product.schema';
 
 import { ProductsController } from './products.controller';
 import { ProductsService } from './products.service';
+import { OrdersModule } from '../orders/orders.module';
 import { UsersModule } from '../users/users.module';
 
 @Module({
@@ -17,6 +18,7 @@ import { UsersModule } from '../users/users.module';
       useFactory: getMulterConfigForImages,
     }),
     CloudinaryModule,
+    OrdersModule,
     UsersModule,
   ],
   providers: [ProductsService],

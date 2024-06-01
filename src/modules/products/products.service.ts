@@ -16,6 +16,7 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { FindProductsDto } from './dto/find-products.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { IFindProductsFilter } from './products.interfaces';
+import { OrdersService } from '../orders/orders.service';
 import { UsersService } from '../users/users.service';
 
 @Injectable()
@@ -25,6 +26,7 @@ export class ProductsService {
     private readonly productModel: Model<ProductDocument>,
     private readonly cloudinaryService: CloudinaryService,
     private readonly usersService: UsersService,
+    private readonly ordersService: OrdersService,
   ) {}
 
   async create(
@@ -282,7 +284,10 @@ export class ProductsService {
       files.gallery,
     );
 
-    if (mainImage) updatedProduct.imageURL = mainImage;
+    if (mainImage) {
+      updatedProduct.imageURL = mainImage;
+      await this.ordersService.updateProductImage(id, mainImage);
+    }
 
     const existedGallery = updatedProduct.imageGallery
       ? updatedProduct.imageGallery

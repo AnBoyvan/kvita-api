@@ -158,6 +158,25 @@ export class OrdersService {
     return order;
   }
 
+  async updateProductImage(productId: string, newImage: string): Promise<void> {
+    const orders = await this.orderModel
+      .find({ 'items.productId': productId })
+      .exec();
+
+    for (const order of orders) {
+      let updated = false;
+      for (const item of order.items) {
+        if (item.productId === productId) {
+          item.productImage = newImage;
+          updated = true;
+        }
+      }
+      if (updated) {
+        await order.save();
+      }
+    }
+  }
+
   async remove(id: string): Promise<{ _id: string; message: string }> {
     const deletedOrder = await this.orderModel.findByIdAndDelete(id);
 
