@@ -161,22 +161,13 @@ export class OrdersService {
   }
 
   async updateProductImage(productId: string, newImage: string): Promise<void> {
-    const orders = await this.orderModel
-      .find({ 'items.productId': productId })
+    await this.orderModel
+      .updateMany(
+        { 'items.productId': productId },
+        { $set: { 'items.$[elem].productImage': newImage } },
+        { arrayFilters: [{ 'elem.productId': productId }] },
+      )
       .exec();
-
-    for (const order of orders) {
-      let updated = false;
-      for (const item of order.items) {
-        if (item.productId === productId) {
-          item.productImage = newImage;
-          updated = true;
-        }
-      }
-      if (updated) {
-        await order.save();
-      }
-    }
   }
 
   async remove(id: string): Promise<{ _id: string; message: string }> {

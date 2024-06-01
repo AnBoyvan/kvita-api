@@ -295,7 +295,10 @@ export class ProductsService {
     await updatedProduct.save();
 
     if (updatedProduct.imageURL)
-      await this.ordersService.updateProductImage(id, updatedProduct.imageURL);
+      await this.ordersService.updateProductImage(
+        updatedProduct._id.toString(),
+        updatedProduct.imageURL,
+      );
 
     return updatedProduct;
   }
