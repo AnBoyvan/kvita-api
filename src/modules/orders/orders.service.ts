@@ -133,7 +133,9 @@ export class OrdersService {
   }
 
   async findCustomerOrders(id: Types.ObjectId): Promise<OrderDocument[]> {
-    return await this.orderModel.find({ 'customer.id': id.toString() });
+    return await this.orderModel
+      .find({ 'customer.id': id.toString() })
+      .sort({ createdAt: -1 });
   }
 
   async findById(id: string): Promise<OrderDocument> {
